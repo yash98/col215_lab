@@ -7,9 +7,8 @@ ENTITY bit8_register IS
 	PORT (
 		clk: IN std_logic;
 		sub_o: out std_logic;
-		load_i: in std_logic;
-		write: IN std_logic_vector (7 downto 0);
-		read: OUT std_logic_vector (7 downto 0)
+		write1: IN std_logic_vector (7 downto 0);
+		read1: OUT std_logic_vector (7 downto 0)
 		  );
 END ENTITY;
 
@@ -18,12 +17,12 @@ ARCHITECTURE beh OF bit8_register IS
 BEGIN
 	PROCESS (clk, load_i)
 	   BEGIN
-		IF (clk = '1') AND (clk'EVENT) AND (load_i = '1') THEN
-			t <= write;
+		IF (clk = '1') AND (clk'EVENT) THEN
+			t <= write1;
 			sub_o <= '1';
 		END IF;
 	END PROCESS;
-	read <= t;
+	read1 <= t;
 END ARCHITECTURE beh;
 
 
