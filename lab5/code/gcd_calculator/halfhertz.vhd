@@ -12,7 +12,7 @@ end entity;
 
 architecture beh of halfhertz is
     signal t: bit:= '0';
-    signal eoc: std_logic_vector (0 to 27) := "0101111101011110000100000000";
+    signal eoc: std_logic_vector (0 to 27) := "1011111010111100001000000000";
     signal c: std_logic_vector (0 to 27) := "0000000000000000000000000000";
     begin
         process(clk, clk'event)
