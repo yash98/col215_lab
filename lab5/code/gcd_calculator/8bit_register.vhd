@@ -4,19 +4,18 @@ use IEEE.std_logic_arith.all;
 use IEEE.std_logic_unsigned.all;
 
 ENTITY bit8_register IS
-	PORT (Clk: IN bit;
-		 write: IN std_logic_vector (0 TO 7);
-		 read: OUT std_logic_vector(0 TO 7)
+	PORT (Clk: IN std_logic;
+		 write: IN std_logic_vector (7 downto 0);
+		 read: OUT std_logic_vector (7 downto 0)
 		  );
 END ENTITY;
 
 ARCHITECTURE beh OF bit8_register IS
-
-	SIGNAL t: std_logic_vector (0 downto 7) := "00000000";
+	SIGNAL t: std_logic_vector (7 downto 0) := "00000000";
 BEGIN
 	PROCESS (Clk)
 	   BEGIN
-		IF (Clk = '1') AND (clk'EVENT) THEN
+		IF (Clk = '1') AND (Clk'EVENT) THEN
 			t <= write;
 		END IF;
 	END PROCESS;
