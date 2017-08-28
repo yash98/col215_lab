@@ -18,9 +18,9 @@ begin
         begin
         if (a(3 downto 0) < ten and a(7 downto 4) < ten and b(3 downto 0) < ten and b(7 downto 4) < ten) then
             op_valid <= '1';
-            if (sub_i = '0') then
-                load <= '1';
-            end if;
+            -- if (sub_i = '0') then
+            --     load <= '1';
+            -- end if;
         else op_valid <= '0';
         end if;
     end process;

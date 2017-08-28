@@ -6,7 +6,7 @@ use IEEE.std_logic_unsigned.all;
 entity operand_valid is
     port (
         clk: in std_logic;
-        sub_i: in std_logic := '0';
+        sub_i: in std_logic;
         a, b: in std_logic_vector (7 downto 0);
         sub_o: in std_logic;
         a2, b2: out std_logic_vector (7 downto 0)
@@ -18,7 +18,7 @@ architecture behavioural of operand_valid is
     -- signal a_greater_than_b : boolean;
     -- if a (4 downto 7) > b (4 downto 7) and a (0 downto 3) > b (0 downto 3)
     begin
-        process (clk, clk'event, sub)
+        process (clk, clk'event)
             begin
                 if (a > b) then
                     if a (3 downto 0) < b (3 downto 0) then
@@ -37,7 +37,7 @@ architecture behavioural of operand_valid is
                         a2 <= a;
                     end if;
                 elsif (b = a) then
-                    sub_o <= '0';
+                    sub_o <= '0'; -- keep
                 end if;
     end process;
 end architecture behavioural;
