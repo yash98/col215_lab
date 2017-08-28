@@ -198,6 +198,7 @@ entity gcd_calculator is
         load, sub, op_valid: out bit;
         do: std_logic_vector (15 downto 0)
     );
-end entity
+end entity;
 
-
+architecture beh of gcd_calculator is
+    begin
