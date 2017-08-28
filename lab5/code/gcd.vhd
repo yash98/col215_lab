@@ -66,7 +66,7 @@ begin
         if (a(3 downto 0) < ten and a(7 downto 4) < ten and b(3 downto 0) < ten and b(7 downto 4) < ten) then
             op_valid <= '1';
 				if (pb = '1') then
-					load_o <= 1;
+					load_o <= '1';
 				end if;
         else op_valid <= '0';
         end if;
@@ -89,8 +89,8 @@ entity halfhertz is
 end entity;
 
 architecture beh of halfhertz is
-    signal t1: bit:= '0';
-	 signal t2: bit:= '0';
+    signal t1: std_logic:= '0';
+	 signal t2: std_logic:= '0';
     signal eoc2: std_logic_vector (0 to 27) := "1011111010111100001000000000";
 	 signal eoc1: std_logic_vector (0 to 27) := "0000000000001111111111111111";
     signal c1: std_logic_vector (0 to 27) := "0000000000000000000000000000";
@@ -98,7 +98,7 @@ architecture beh of halfhertz is
     begin
         process(clk, clk'event, pb)
             begin
-					if (pushbutton = '1') then
+					if (pb = '1') then
 						  mod_clk <= clk;
 					else
 						 if c2 = eoc2 then
@@ -157,7 +157,7 @@ END ENTITY;
 ARCHITECTURE beh OF bit8_register IS
 	SIGNAL t: std_logic_vector (7 downto 0) := "00000000";
 BEGIN
-	PROCESS (clk, load_i)
+	PROCESS (clk)
 	   BEGIN
 		IF (clk = '1') AND (clk'EVENT) THEN
 			t <= write1;
@@ -286,3 +286,5 @@ begin
                 sub_o=>sub);
    
 end BEHAVIORAL;
+
+
