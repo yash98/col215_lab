@@ -120,8 +120,9 @@ use IEEE.std_logic_unsigned.all;
 
 entity demux16X8 is
     port (
-            load_i : in bit;
-            sw, outofsub: in std_logic_vector (0 to 7);
+            load_i : in std_logic;
+            sw: in std_logic_vector (0 to 7);
+            outofsub: in std_logic_vector (0 to 7);
             o: out std_logic_vector (0 to 7)
     );
 end entity;
