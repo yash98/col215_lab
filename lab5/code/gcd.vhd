@@ -61,19 +61,23 @@ begin
         else
             op_valid <= '0';
             load_i <= '0';
+            sub_i <= '0';
+        end if;
+        if (load_i = '1') then
+            a <= a_i;
+            b <= b_i;
+            sub_i <= '1';
+            load_i <= '0';
+         end if;
+         if (b = a) then
+             sub_i <= '0';
         end if;
     end process;
     
     process (mod_clk)
     begin
         if (mod_clk = '1' and mod_clk'event) then
-            if (load_i = '1') then
-                a <= a_i;
-                b <= b_i;
-                sub_i <= '1';
-                load_i <= '0';
-            end if;
-            if (sub_i = '1' and load_i = '0') then
+            if (sub_i = '1') then
                 if (a > b) then
                     if a (3 downto 0) < b (3 downto 0) then
                         a <= a(7 downto 4) - b(7 downto 4) - "0001" & a(3 downto 0) - b(3 downto 0) + "1010";
@@ -90,8 +94,6 @@ begin
                             b <= b(7 downto 4) - a(7 downto 4) & b(3 downto 0) - a(3 downto 0);
                             a <= a;
                       end if;
-                 elsif (b = a) then
-                      sub_i <= '0';
                 end if;
             end if;
         end if;
