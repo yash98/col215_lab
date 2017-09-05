@@ -176,7 +176,7 @@ use ieee.numeric_std.ALL;
 library UNISIM;
 use UNISIM.Vcomponents.ALL;
 
-entity gcd_calculator is
+entity gcd is
    port ( a_i      : in    std_logic_vector (7 downto 0); 
           b_i      : in    std_logic_vector (7 downto 0); 
           clk      : in    std_logic; 
@@ -187,9 +187,9 @@ entity gcd_calculator is
           load     : out   std_logic; 
           op_valid : out   std_logic; 
           sub      : out   std_logic);
-end gcd_calculator;
+end gcd;
 
-architecture BEHAVIORAL of gcd_calculator is
+architecture BEHAVIORAL of gcd is
    signal XLXN_3     : std_logic;
    signal XLXN_16    : std_logic_vector (0 to 7);
    signal XLXN_17    : std_logic_vector (0 to 7);
