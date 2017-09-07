@@ -30,10 +30,13 @@ signal b: std_logic_vector (7 downto 0);
 signal op_valid_i: std_logic := '0';
 signal load_i: std_logic := '0';
 signal sub_i: std_logic := '0';
-signal op_valid_i1: std_logic := '0';
-signal load_i1: std_logic := '0';
-signal sub_i1: std_logic := '0';
+
+--signal op_valid_i1: std_logic := '0';
+--signal load_i1: std_logic := '0';
+--signal sub_i1: std_logic := '0';
+
 signal mod_clk: std_logic := '0';
+
 begin
     process(clk, pushbutton)
             begin
@@ -53,42 +56,28 @@ begin
                 end if;
         end process;
 
-    process (push_i, a_i, b_i)
-    begin
-        if (a_i(3 downto 0) < ten and a_i(7 downto 4) < ten and b_i(3 downto 0) < ten and b_i(7 downto 4) < ten) then
-            op_valid_i1 <= '1';
-            if (push_i = '1') then
-                load_i1 <= '1';
-                sub_i1 <= '0';
-            else load_i1 <= '0';
-            end if;
-        else
-            op_valid_i1 <= '0';
-            load_i1 <= '0';
-            sub_i1 <= '0';
-        end if;
-    end process;
-    
-    process (mod_clk, push_i, a_i, b_i)
+    process (push_i, a_i, b_i, mod_clk, load_i, sub_i)
     begin
         if (a_i(3 downto 0) < ten and a_i(7 downto 4) < ten and b_i(3 downto 0) < ten and b_i(7 downto 4) < ten) then
             op_valid_i <= '1';
             if (push_i = '1') then
                 load_i <= '1';
                 sub_i <= '0';
-            else load_i <= '0';
             end if;
         else
             op_valid_i <= '0';
             load_i <= '0';
             sub_i <= '0';
         end if;
+        
+
+
         if (mod_clk = '1' and mod_clk'event) then
             if (load_i = '1') then
-                a <= a_i;
-                b <= b_i;
-                sub_i <= '1';
-                load_i <= '0';
+                    a <= a_i;
+                    b <= b_i;
+                    sub_i <= '1';
+                    load_i <= '0';
             elsif (sub_i = '1') then
                 if (a > b) then
                     if a (3 downto 0) < b (3 downto 0) then
@@ -113,9 +102,9 @@ begin
         end if;
     end process;
     
-    sub <= sub_i1 and sub_i;
-    load <= load_i1;
-    op_valid <= op_valid_i1;
+    sub <= sub_i;
+    load <= load_i;
+    op_valid <= op_valid_i;
     d_o <= a & b;
 
 end architecture;
