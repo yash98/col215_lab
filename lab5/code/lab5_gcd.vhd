@@ -1346,13 +1346,13 @@ entity lab5_gcd is
         load: out std_logic;
         sub: out std_logic;
         op_valid: out std_logic;
-        anode: out std_logic_vector(6 downto 0);
-        cathode: out std_logic_vector(3 downto 0)
+        anode: out std_logic_vector(3 downto 0);
+        cathode: out std_logic_vector(6 downto 0)
         );
 end entity;
 
 architecture beh of lab5_gcd is
-signal d_o: std_logic_vector (15 downto 0);
+signal d: std_logic_vector (15 downto 0);
 
 component gcd is
     port (
@@ -1386,15 +1386,15 @@ begin
         load => load,
         sub => sub,
         op_valid =>op_valid,
-        d_o => d_o,
+        d_o => d
     );
     
     SEG: lab4_seven_segment_display port map(
-              b          => d_o,
+              b          => d,
               clk        => clk,
               pushbutton => pushbutton,
               anode      => anode,
-              cathode    => cathode,
+              cathode    => cathode
     );
 
 end architecture;
