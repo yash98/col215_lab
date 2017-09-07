@@ -30,6 +30,7 @@ signal b: std_logic_vector (7 downto 0);
 signal op_valid_i: std_logic := '0';
 signal load_i: std_logic := '0';
 signal sub_i: std_logic := '0';
+signal op_valid_i1: std_logic := '0';
 signal load_i1: std_logic := '0';
 signal sub_i1: std_logic := '0';
 signal mod_clk: std_logic := '0';
@@ -45,7 +46,7 @@ begin
                         if c = eoc then
                             c <= "0000000000000000000000000000";
                             t <= not t;
-                        else c <= c + "0000000000000000000000000000";
+                        else c <= c + "0000000000000000000000000001";
                         end if;
                         mod_clk <= t;
                    end if;
@@ -55,28 +56,30 @@ begin
     process (push_i, a_i, b_i)
     begin
         if (a_i(3 downto 0) < ten and a_i(7 downto 4) < ten and b_i(3 downto 0) < ten and b_i(7 downto 4) < ten) then
-            op_valid_i <= '1';
+            op_valid_i1 <= '1';
             if (push_i = '1') then
                 load_i1 <= '1';
                 sub_i1 <= '0';
-            else load_i <= '0';
+            else load_i1 <= '0';
             end if;
         else
-            op_valid_i <= '0';
+            op_valid_i1 <= '0';
             load_i1 <= '0';
             sub_i1 <= '0';
         end if;
     end process;
     
-    process (mod_clk, push_i, a_i, b_i, op_valid_i)
+    process (mod_clk, push_i, a_i, b_i)
     begin
-        if (op_valid_i = '1') then
-                if (push_i = '1') then
-                    load_i <= '1';
-                    sub_i <= '0';
-                else load_i <= '0';
-                end if;
+        if (a_i(3 downto 0) < ten and a_i(7 downto 4) < ten and b_i(3 downto 0) < ten and b_i(7 downto 4) < ten) then
+            op_valid_i <= '1';
+            if (push_i = '1') then
+                load_i <= '1';
+                sub_i <= '0';
+            else load_i <= '0';
+            end if;
         else
+            op_valid_i <= '0';
             load_i <= '0';
             sub_i <= '0';
         end if;
@@ -86,8 +89,7 @@ begin
                 b <= b_i;
                 sub_i <= '1';
                 load_i <= '0';
-            end if;
-            if (sub_i = '1') then
+            elsif (sub_i = '1') then
                 if (a > b) then
                     if a (3 downto 0) < b (3 downto 0) then
                         a <= a(7 downto 4) - b(7 downto 4) - "0001" & a(3 downto 0) - b(3 downto 0) + "1010";
@@ -111,9 +113,9 @@ begin
         end if;
     end process;
     
-    sub <= sub_i1;
+    sub <= sub_i1 and sub_i;
     load <= load_i1;
-    op_valid <= op_valid_i;
+    op_valid <= op_valid_i1;
     d_o <= a & b;
 
 end architecture;
