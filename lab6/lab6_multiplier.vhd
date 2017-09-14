@@ -80,3 +80,58 @@ begin
   end generate cpa;
 
 end architecture;
+
+-- carry save adder
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity csa is
+    port(
+    a, b, ci: in std_logic_vector(6 downto 0);
+    co, so: out std_logic_vector(6 downto 0)
+    );
+end entity;
+
+architecture beh of csa is
+
+component fadd
+	port(
+		a, b, ci: in std_logic;
+        s, co: out std_logic
+	);
+end component;
+
+begin
+    csa: for I in 0 to 6 generate
+      uo: fadd port map(
+        a => a(I),
+        b => b(I),
+        ci => ci(I),
+        s => so(I),
+        co => co(I)
+      );
+  end generate csa;
+
+end architecture;
+
+-- multiplier 1
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity mult1 is
+    port(
+    a, b: in std_logic_vector(6 downto 0);
+    p: out std_logic_vector(15 downto 0)
+    );
+end entity;
+
+architecture beh of mult1 is
+begin
+
+end architecture;
