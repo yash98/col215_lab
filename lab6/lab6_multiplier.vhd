@@ -283,14 +283,14 @@ end entity;
 
 architecture beh of mult2 is
 
-signal sint: std_logic_vector(41 downto 0); -- used 1 less than bits * i less than boxes
+signal sint: std_logic_vector(54 downto 0); -- 7*8 - 1 eight for each loop except for last loop special con
 signal zero: std_logic:= '0';
 signal aint: std_logic_vector(7 downto 0); -- used in one iteration for all bits
-signal bint: std_logic_vector(7 downto 0); -- used 7 time with 8 inputs
+signal bint: std_logic_vector(47 downto 0); -- used one less than 7 (not in last) time with 8 inputs
 
 --check if this length is really required
-signal carry: std_logic_vector(41 downto 0):= "00000000000000000000000000000000000000000";
-signal coint: std_logic_vector(41 downto 0):= "00000000000000000000000000000000000000000";
+signal carry: std_logic_vector(48 downto 0); -- (8-1 bits) 7 times
+signal coint: std_logic_vector(55 downto 0); -- 8 bits for output (8-1(last)) times
 signal f_bit: std_logic;
 
 
@@ -335,7 +335,9 @@ begin
         );
      end generate lowest_adder;
      
-     sint(8*I)<= b(7) and a(I+2);
+     over: if I<6 generate
+         sint(I*8) <= b(7) and a(I+2);
+     end generate;
      
      upper_adder: if (I>0 and I<6) generate
         genx3: for T in 1 to 7 generate
@@ -392,8 +394,8 @@ signal aint: std_logic_vector(7 downto 0); -- used in one iteration for all bits
 signal bint: std_logic_vector(55 downto 0); -- used 7 time with 8 inputs
 
 --check if this length is really required
-signal carry: std_logic_vector(41 downto 0):= "00000000000000000000000000000000000000000";
-signal coint: std_logic_vector(41 downto 0):= "00000000000000000000000000000000000000000";
+signal carry: std_logic_vector(41 downto 0);
+signal coint: std_logic_vector(41 downto 0);
 
 component cla is
     port (
