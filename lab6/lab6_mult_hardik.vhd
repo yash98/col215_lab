@@ -1800,6 +1800,25 @@ entity lab6_multiplier is
         product: in std_logic_vector(7 downto 0);
         anode: out std_logic_vector(3 downto 0);
         cathode: out std_logic_vector(6 downto 0)
+    );
+end entity;
+
+architecture beh of lab6_multiplier is
+component multchoose is
+    port (
+        in1, in2: in std_logic_vector(7 downto 0);
+        multiplier_select: in std_logic_vector(1 downto 0);
+        product: out std_logic_vector(15 downto 0)
+    );
+end component;
+component lab4_seven_segment_display is
+   port ( b          : in    std_logic_vector (15 downto 0); 
+          clk        : in    std_logic; 
+          pushbutton : in    std_logic; 
+          anode      : out   std_logic_vector (3 downto 0); 
+          cathode    : out   std_logic_vector (6 downto 0));
+end lab4_seven_segment_display;
+    
 
 
 
