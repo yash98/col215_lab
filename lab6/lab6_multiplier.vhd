@@ -27,16 +27,16 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity cpa is
     port(
-    a, b: in std_logic_vector(6 downto 0);
+    a, b: in std_logic_vector(7 downto 0);
     ci: in std_logic;
     co: out std_logic;
-    so: out std_logic_vector(6 downto 0)
+    so: out std_logic_vector(7 downto 0)
     );
 end entity;
 
 architecture beh of cpa is
 
-signal cint: std_logic_vector(5 downto 0);
+signal cint: std_logic_vector(6 downto 0);
 
 component fadd
 	port(
@@ -46,7 +46,7 @@ component fadd
 end component;
 
 begin
-    cpa: for I in 0 to 6 generate
+    cpa: for I in 0 to 7 generate
 
     lowest_adder: if I=0 generate
       uo: fadd port map(
@@ -58,7 +58,7 @@ begin
       );
     end generate lowest_adder;
 
-    upper_adder: if (I>0 and I<6) generate
+    upper_adder: if (I>0 and I<7) generate
       ux: fadd port map(
         a => a(I),
         b => b(I),
@@ -68,7 +68,7 @@ begin
       );
     end generate upper_adder;
     
-    top_adder: if I=6 generate
+    top_adder: if I=7 generate
           ut: fadd port map(
             a => a(I),
             b => b(I),
@@ -90,8 +90,8 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity csa is
     port(
-    a, b, ci: in std_logic_vector(6 downto 0);
-    co, so: out std_logic_vector(6 downto 0)
+    a, b, ci: in std_logic_vector(7 downto 0);
+    co, so: out std_logic_vector(7 downto 0)
     );
 end entity;
 
@@ -105,7 +105,7 @@ component fadd
 end component;
 
 begin
-    csa: for I in 0 to 6 generate
+    csa: for I in 0 to 7 generate
       uo: fadd port map(
         a => a(I),
         b => b(I),
@@ -126,12 +126,69 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity mult1 is
     port(
-    a, b: in std_logic_vector(6 downto 0);
+    a, b: in std_logic_vector(7 downto 0);
     p: out std_logic_vector(15 downto 0)
     );
 end entity;
 
 architecture beh of mult1 is
-begin
 
+signal coint: std_logic_vector(4 downto 0);
+signal sint: std_logic_vector(41 downto 0);
+signal zero: std_logic:= '0';
+signal aint: std_logic_vector(41 downto 0);
+signal bint: std_logic_vector(41 downto 0);
+
+component cpa is
+    port(
+    a, b: in std_logic_vector(7 downto 0);
+    ci: in std_logic;
+    co: out std_logic;
+    so: out std_logic_vector(7 downto 0)
+    );
+end component;
+
+begin
+    mult1: for I in 0 to 6 generate
+        
+    lowest_adder: if I=0 generate
+      genl1: for T in 1 to 7 generate
+          aint(T-1) <= a(I) and b(T);
+      end generate;
+      aint(7) <= '0';
+      genl2: for T in 0 to 7 generate
+          bint(T) <= a(I+1) and b(T);
+      end generate;
+      uo: cpa port map(
+        a => aint(7+I*8 downto 0+I*8),
+        b => bint(7+I*8 downto 0+I*8),
+        ci => zero,
+        so(7 downto 1) => sint(6 downto 0),
+        so(0) => p(I+1),
+        co => coint(I)
+      );
+    end generate lowest_adder;
+    
+    upper_adder: if (I>0 and I<6) generate
+      ux: cpa port map(
+        a => a(I),
+        b => b(I),
+        ci => cint(I-1),
+        s => so(I),
+        co => cint(I)
+      );
+    end generate upper_adder;
+    
+    top_adder: if I=6 generate
+          ut: cpa port map(
+            a => a(I),
+            b => b(I),
+            ci => cint(I-1),
+            s => so(I),
+            co => co
+          );
+        end generate top_adder;
+    end generate mult1;
+    p(0) <= a(0) and b(0);
+    
 end architecture;
