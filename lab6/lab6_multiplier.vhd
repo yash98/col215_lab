@@ -1506,7 +1506,6 @@ signal zero: std_logic:= '0';
 signal aint: std_logic_vector(7 downto 0); -- used in one iteration for all bits
 signal bint: std_logic_vector(47 downto 0); -- used one less than 7 (not in last) time with 8 inputs
 
---check if this length is really required
 signal carry: std_logic_vector(48 downto 0); -- (8-1 bits) 7 times
 signal coint: std_logic_vector(55 downto 0); -- 8 bits for output (8-1(last)) times
 signal f_bit: std_logic;
@@ -1578,9 +1577,9 @@ begin
             a => coint(7+(I-1)*8 downto 0+(I-1)*8),
             b(6 downto 0) => sint(7+(I-1)*8 downto 1+(I-1)*8),
             b(7) => sint(8*(I-1)),
-            ci => '0',
+            ci => zero,
             so(7 downto 0) => p(14 downto 7),
-            so(15) => p(15)
+            co => p(15)
          );
       end generate end_adder; 
      end generate mult2;
@@ -1606,14 +1605,13 @@ end entity;
 
 architecture beh of mult3 is
 signal c4: std_logic;
-signal sint: std_logic_vector(41 downto 0); -- used 1 less than bits * i less than boxes
+signal sint: std_logic_vector(54 downto 0); -- 7*8 - 1 eight for each loop except for last loop special con
 signal zero: std_logic:= '0';
 signal aint: std_logic_vector(7 downto 0); -- used in one iteration for all bits
-signal bint: std_logic_vector(55 downto 0); -- used 7 time with 8 inputs
+signal bint: std_logic_vector(47 downto 0); -- used one less than 7 (not in last) time with 8 inputs
 
---check if this length is really required
-signal carry: std_logic_vector(41 downto 0);
-signal coint: std_logic_vector(41 downto 0);
+signal carry: std_logic_vector(48 downto 0); -- (8-1 bits) 7 times
+signal coint: std_logic_vector(55 downto 0); -- 8 bits for output (8-1(last)) times
 
 component cla is
     port (
@@ -1682,7 +1680,7 @@ begin
             b => sint(3+(I-1)*8 downto 0+(I-1)*8),
             c0 => zero,
             c4 => c4,
-            s => p(10 downto 7)
+            s => p(11 downto 8)
         );
         cla2: cla port map (
             a(2 downto 0) => coint(7+(I-1)*8 downto 5+(I-1)*8),
@@ -1690,7 +1688,7 @@ begin
             b => sint(7+(I-1)*8 downto 4+(I-1)*8),
             c0 => c4,
             c4 => p(15),
-            s => p(15 downto 11)
+            s => p(15 downto 12)
         );
         
     end generate top_adder;
@@ -1814,7 +1812,7 @@ begin
     in1 => in1,
     in2 => in2,
     multiplier_select => multiplier_select,
-    product => product
+    product => p
     );
     
     ss: lab4_seven_segment_display  port map ( 
