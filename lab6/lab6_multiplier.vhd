@@ -133,11 +133,11 @@ end entity;
 
 architecture beh of mult1 is
 
-signal coint: std_logic_vector(4 downto 0);
-signal sint: std_logic_vector(41 downto 0);
+signal coint: std_logic_vector(5 downto 0);
+signal sint: std_logic_vector(41 downto 0):= "00000000000000000000000000000000000000000";
 signal zero: std_logic:= '0';
-signal aint: std_logic_vector(41 downto 0);
-signal bint: std_logic_vector(41 downto 0);
+signal aint: std_logic_vector(41 downto 0):= "00000000000000000000000000000000000000000";
+signal bint: std_logic_vector(41 downto 0):= "00000000000000000000000000000000000000000";
 
 component cpa is
     port(
@@ -153,13 +153,13 @@ begin
         
     lowest_adder: if I=0 generate
       genl1: for T in 1 to 7 generate
-          aint(T-1) <= a(I) and b(T);
+          aint(7*I+T-1) <= a(I) and b(T);
       end generate;
       aint(7) <= '0';
       genl2: for T in 0 to 7 generate
-          bint(T) <= a(I+1) and b(T);
+          bint(8*I+T) <= a(I+1) and b(T);
       end generate;
-      uo: cpa port map(
+      ul: cpa port map(
         a => aint(7+I*8 downto 0+I*8),
         b => bint(7+I*8 downto 0+I*8),
         ci => zero,
@@ -170,25 +170,36 @@ begin
     end generate lowest_adder;
     
     upper_adder: if (I>0 and I<6) generate
-      ux: cpa port map(
-        a => a(I),
-        b => b(I),
-        ci => cint(I-1),
-        s => so(I),
-        co => cint(I)
+        genx2: for T in 0 to 7 generate
+            bint(8*I+T) <= a(I+1) and b(T);
+        end generate;
+        uu: cpa port map(
+        a(6 downto 0) => sint(7+I*8 downto 0+I*8),
+        a(7) => coint(I-1),
+        b => bint(7+I*8 downto 0+I*8),
+        ci => zero,
+        so(7 downto 1) => sint(7*I+6 downto 7*I),
+        so(0) => p(I+1),
+        co => coint(I)
       );
     end generate upper_adder;
     
     top_adder: if I=6 generate
-          ut: cpa port map(
-            a => a(I),
-            b => b(I),
-            ci => cint(I-1),
-            s => so(I),
-            co => co
+        gent2: for T in 0 to 7 generate
+            bint(8*I+T) <= a(I+1) and b(T);
+        end generate;
+        ut: cpa port map(
+        a(6 downto 0) => bint(7+I*8 downto 0+I*8),
+        a(7) => coint(I-1),
+        b => bint(7+I*8 downto 0+I*8),
+        ci => zero,
+        so(7 downto 1) => p(14 downto 8),
+        so(0) => p(I+1),
+        co => p(15)
           );
         end generate top_adder;
     end generate mult1;
     p(0) <= a(0) and b(0);
     
 end architecture;
+
