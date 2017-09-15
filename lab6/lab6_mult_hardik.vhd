@@ -226,8 +226,6 @@ end architecture;
 
 
 
-
-
 -- multiplier 2
 
 library IEEE;
@@ -254,6 +252,8 @@ signal bint: std_logic_vector(55 downto 0); -- used 7 time with 8 inputs
 --check if this length is really required
 signal carry: std_logic_vector(41 downto 0):= "00000000000000000000000000000000000000000";
 signal coint: std_logic_vector(41 downto 0):= "00000000000000000000000000000000000000000";
+signal f_bit: std_logic;
+
 
 component cpa is
     port(
@@ -272,7 +272,7 @@ component csa is
 end component;
 
 begin
-    mult2: for I in 0 to 5 generate
+    mult2: for I in 0 to 6 generate
         
     lowest_adder: if I=0 generate
         genl1: for T in 1 to 7 generate
@@ -280,7 +280,7 @@ begin
         end generate;
         aint(7) <= '0';
         genl2: for T in 0 to 7 generate
-            bint(8*I+T) <= a(T+1) and b(T);
+            bint(8*I+T) <= a(I+1) and b(T);
         end generate;
         genl3: for T in 1 to 7 generate
             carry(8*I+T) <= a(I+2) and b(T-1);
@@ -290,13 +290,15 @@ begin
             a => aint(7+I*8 downto 0+I*8),
             b => bint(7+I*8 downto 0+I*8),
             ci => carry(7 downto 0),
-            so(7 downto 0) => sint(7+I*8 downto 0+I*8),
+            so(7 downto 1) => sint(7+I*8 downto 1+I*8),
             so(0) => p(I+1),
             co(7 downto 0) => coint(7+I*8 downto 0+I*8)
         );
      end generate lowest_adder;
      
-     upper_adder: if (I>0 and I<5) generate
+     sint(8*I)<= b(7) and a(I+2);
+     
+     upper_adder: if (I>0 and I<6) generate
         genx3: for T in 1 to 7 generate
             carry(8*I+T) <= a(I+2) and b(T-1);
         end generate;
@@ -304,14 +306,24 @@ begin
         ux: csa port map(
             a => coint(7+(I-1)*8 downto 0+(I-1)*8),
             b(6 downto 0) => sint(7+(I-1)*8 downto 1+(I-1)*8),
-            b(7) => a(I+1) and b(7),
+            b(7) => sint(8*(I-1)),
             ci => carry(7+I*8 downto 0+I*8),
-            so(7 downto 0) => sint(7+I*8 downto 0+I*8),
+            so(7 downto 1) => sint(7+I*8 downto 1+I*8),
             so(0) => p(I+1),
             co(7 downto 0) => coint(7+I*8 downto 0+I*8)
          );
-         end generate upper_adder;
-
+      end generate upper_adder;
+         
+      end_adder: if (I=6) generate
+        ue: cpa port map(
+            a => coint(7+(I-1)*8 downto 0+(I-1)*8),
+            b(6 downto 0) => sint(7+(I-1)*8 downto 1+(I-1)*8),
+            b(7) => sint(8*(I-1)),
+            ci => '0',
+            so(7 downto 0) => p(14 downto 7),
+            so(15) => p(15)
+         );
+      end generate end_adder; 
      end generate mult2;
      p(0) <= a(0) and b(0);
 
