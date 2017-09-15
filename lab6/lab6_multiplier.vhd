@@ -497,9 +497,58 @@ entity multchoose is
 end entity;
 
 architecture beh of multchoose is
+
+component mult1 is
+    port(
+    a, b: in std_logic_vector(7 downto 0);
+    p: out std_logic_vector(15 downto 0)
+    );
+end component;
+
+component mult2 is
+    port(
+    a, b: in std_logic_vector(7 downto 0);
+    p: out std_logic_vector(15 downto 0)
+    );
+end component;
+
+component mult3 is
+    port(
+    a, b: in std_logic_vector(7 downto 0);
+    p: out std_logic_vector(15 downto 0)
+    );
+end component;
+
+signal p1: std_logic_vector(15 downto 0);
+signal p2: std_logic_vector(15 downto 0);
+signal p3: std_logic_vector(15 downto 0);
+
 begin
 
-end architecture
+m1: mult1 port map (
+    a => in1,
+    b => in2,
+    p => p1
+);
+
+m2: mult2 port map (
+    a => in1,
+    b => in2,
+    p => p2
+);
+
+m3: mult3 port map (
+    a => in1,
+    b => in2,
+    p => p3
+);
+
+product <= p1 when multiplier_select = "00" else
+           p2 when multiplier_select = "01" else
+           p3 when multiplier_select = "10" else
+           p3 when multiplier_select = "11";
+
+end architecture;
 
 
 
