@@ -133,11 +133,11 @@ end entity;
 
 architecture beh of mult1 is
 
-signal coint: std_logic_vector(5 downto 0);
-signal sint: std_logic_vector(41 downto 0):= "00000000000000000000000000000000000000000";
+signal coint: std_logic_vector(5 downto 0); -- 7 box (used in all except last)
+signal sint: std_logic_vector(41 downto 0); -- used 1 less than bits * i less than boxes
 signal zero: std_logic:= '0';
-signal aint: std_logic_vector(41 downto 0):= "00000000000000000000000000000000000000000";
-signal bint: std_logic_vector(41 downto 0):= "00000000000000000000000000000000000000000";
+signal aint: std_logic_vector(7 downto 0); -- used in one iteration for all bits
+signal bint: std_logic_vector(55 downto 0); -- used 7 time with 8 inputs
 
 component cpa is
     port(
@@ -174,7 +174,7 @@ begin
             bint(8*I+T) <= a(I+1) and b(T);
         end generate;
         uu: cpa port map(
-        a(6 downto 0) => sint(7+I*8 downto 0+I*8),
+        a(6 downto 0) => sint(7*(I-1)+6 downto 7*(I-1)),
         a(7) => coint(I-1),
         b => bint(7+I*8 downto 0+I*8),
         ci => zero,
@@ -189,12 +189,11 @@ begin
             bint(8*I+T) <= a(I+1) and b(T);
         end generate;
         ut: cpa port map(
-        a(6 downto 0) => bint(7+I*8 downto 0+I*8),
+        a(6 downto 0) => sint(7*(I-1)+6 downto 7*(I-1)),
         a(7) => coint(I-1),
         b => bint(7+I*8 downto 0+I*8),
         ci => zero,
-        so(7 downto 1) => p(14 downto 8),
-        so(0) => p(I+1),
+        so(7 downto 0) => p(14 downto 7),
         co => p(15)
           );
         end generate top_adder;
