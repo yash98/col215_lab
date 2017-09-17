@@ -1632,47 +1632,47 @@ end component;
 begin
     mult3: for I in 0 to 6 generate
     
-    over: if I<6 generate
-        sint(I*8) <= b(7) and a(I+2);
-    end generate;
-    
     lowest_adder: if I=0 generate
-        genl1: for T in 1 to 7 generate
-            aint(T-1) <= a(I) and b(T);
-        end generate;
-        aint(7) <= '0';
-        genl2: for T in 0 to 7 generate
-            bint(8*I+T) <= a(I+1) and b(T);
-        end generate;
-        genl3: for T in 1 to 7 generate
-            carry(8*I+T) <= a(I+2) and b(T-1);
-        end generate;
-        carry(8*I+0) <= '0';
-        u1: csa port map(
-            a => aint(7+I*8 downto 0+I*8),
-            b => bint(7+I*8 downto 0+I*8),
-            ci => carry(7 downto 0),
-            so(7 downto 1) => sint(7+I*8 downto 1+I*8),
-            so(0) => p(I+1),
-            co(7 downto 0) => coint(7+I*8 downto 0+I*8)
-        );
-     end generate lowest_adder;
-     
-     upper_adder: if (I>0 and I<6) generate
-        genx3: for T in 1 to 7 generate
-            carry(8*I+T) <= a(I+2) and b(T-1);
-        end generate;
-        carry(8*I+0) <='0';
-        ux: csa port map(
-            a => coint(7+(I-1)*8 downto 0+(I-1)*8),
-            b(6 downto 0) => sint(7+(I-1)*8 downto 1+(I-1)*8),
-            b(7) => sint(8*(I-1)),
-            ci => carry(7+I*8 downto 0+I*8),
-            so(7 downto 1) => sint(7+I*8 downto 1+I*8),
-            so(0) => p(I+1),
-            co(7 downto 0) => coint(7+I*8 downto 0+I*8)
-         );
-         end generate upper_adder;
+            genl1: for T in 1 to 7 generate
+                aint(T-1) <= a(I) and b(T);
+            end generate;
+            aint(7) <= '0';
+            genl2: for T in 0 to 7 generate
+                bint(8*I+T) <= a(I+1) and b(T);
+            end generate;
+            genl3: for T in 1 to 7 generate
+                carry(8*I+T) <= a(I+2) and b(T-1);
+            end generate;
+            carry(8*I+0) <= '0';
+            u1: csa port map(
+                a => aint(7+I*8 downto 0+I*8),
+                b => bint(7+I*8 downto 0+I*8),
+                ci => carry(7 downto 0),
+                so(7 downto 1) => sint(7+I*8 downto 1+I*8),
+                so(0) => p(I+1),
+                co(7 downto 0) => coint(7+I*8 downto 0+I*8)
+            );
+         end generate lowest_adder;
+         
+         over: if I<6 generate
+             sint(I*8) <= b(7) and a(I+2);
+         end generate;
+         
+         upper_adder: if (I>0 and I<6) generate
+            genx3: for T in 1 to 7 generate
+                carry(8*I+T) <= a(I+2) and b(T-1);
+            end generate;
+            carry(8*I+0) <='0';
+            ux: csa port map(
+                a => coint(7+(I-1)*8 downto 0+(I-1)*8),
+                b(6 downto 0) => sint(7+(I-1)*8 downto 1+(I-1)*8),
+                b(7) => sint(8*(I-1)),
+                ci => carry(7+I*8 downto 0+I*8),
+                so(7 downto 1) => sint(7+I*8 downto 1+I*8),
+                so(0) => p(I+1),
+                co(7 downto 0) => coint(7+I*8 downto 0+I*8)
+             );
+          end generate upper_adder;
     
     top_adder: if (I = 6) generate
         cla1: cla port map (
@@ -1783,7 +1783,7 @@ entity lab6_multiplier is
         in2: in std_logic_vector(7 downto 0);
         display_button: in std_logic;
         multiplier_select: in std_logic_vector(1 downto 0);
-        product: out std_logic_vector(7 downto 0);
+        product: out std_logic_vector(15 downto 0);
         anode: out std_logic_vector(3 downto 0);
         cathode: out std_logic_vector(6 downto 0)
     );
