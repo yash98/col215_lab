@@ -1383,18 +1383,19 @@ end component;
 begin
     c(0) <= c0;
     pg: for I in 0 to 3 generate
-        P(I) <= a(I) and b(I);
-        G(I) <= a(I) or b(I);
-        C(I+1) <= (P(I) and C(I)) or G(I);
+        p(I) <= a(I) or b(I);
+        g(I) <= a(I) and b(I);
+        c(I+1) <= (p(I) and c(I)) or g(I);
     end generate;
     sum: for J in 0 to 3 generate
         nc: ncadd port map(
         a => a(J),
         b => b(J),
-        ci => C(J),
+        ci => c(J),
         s => s(J)
         );
     end generate;
+    c4 <= c(4);
 end architecture;
 
 -- multiplier 1
@@ -1676,19 +1677,19 @@ begin
     
     top_adder: if (I = 6) generate
         cla1: cla port map (
-            a => coint(4+(I-1)*8 downto 1+(I-1)*8),
-            b => sint(3+(I-1)*8 downto 0+(I-1)*8),
+            a => coint(3+(I-1)*8 downto 0+(I-1)*8),
+            b => sint(4+(I-1)*8 downto 1+(I-1)*8),
             c0 => zero,
             c4 => c4,
-            s => p(11 downto 8)
+            s => p(10 downto 7)
         );
         cla2: cla port map (
-            a(2 downto 0) => coint(7+(I-1)*8 downto 5+(I-1)*8),
-            a(3) => sint(8*(I-1)),
-            b => sint(7+(I-1)*8 downto 4+(I-1)*8),
+            a(3 downto 0) => coint(7+(I-1)*8 downto 4+(I-1)*8),
+            b(3) => sint(8*(I-1)),
+            b(2 downto 0) => sint(7+(I-1)*8 downto 5+(I-1)*8),
             c0 => c4,
             c4 => p(15),
-            s => p(15 downto 12)
+            s => p(14 downto 11)
         );
         
     end generate top_adder;
@@ -1822,6 +1823,7 @@ begin
         anode => anode,
         cathode => cathode
     );
+    product <= p;
     
 end architecture;
 
