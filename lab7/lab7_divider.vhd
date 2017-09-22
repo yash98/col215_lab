@@ -15,8 +15,7 @@ end entity;
 
 architecture beh of twoc is
 begin
-c <= i when e = '0' else
-    "11111111" - i + "00000001" when e = '1';
+c <= i when e = '0' else "11111111" - i + "00000001" when e = '1';
 end architecture;
 
 -- division
@@ -52,6 +51,5 @@ begin
     firstcompdividend: twoc port map (
     e => i(7);
     i => dividend;
-    c => 
+    c =>
     );
-    
