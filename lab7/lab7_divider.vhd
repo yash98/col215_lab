@@ -39,7 +39,9 @@ end entity;
 architecture beh of div is
 
 signal sign: std_logic_vector(1 downto 0);
-signal a:
+signal a: std_logic_vector(7 downto 0);
+shared variable r: std_logic_vector(15 downto 0) := "0000000000000000";
+signal b: std_logic_vector(7 downto 0);
 
 component twoc is
     port (
@@ -51,8 +53,34 @@ end component;
 begin
     sign <= dividend(7) & divisor(7);
     firstcompdividend: twoc port map (
-    e => i(7);
-    i => dividend;
-    c => 
+        e => dividend(7),
+        i => dividend,
+        c => a
     );
+    
+    firstcompdivisor: twoc port map (
+        e => divisor(7),
+        i => divisor,
+        c => b
+    );
+    
+    
+    process(load)
+    begin
+        if (load = '1') then
+        r(7 downto 0) := a;
+        end if;
+        for i in 0 to 6 loop
+            r(15 downto 0) := r(14 downto 0) & "0";
+            if (b<=r(15 downto 8)) then
+                r(15 downto 8) := r(15 downto 8) - b;
+                r(0) := '1';
+            end if;
+        end loop;
+    end process;
+    
+    qoutient <= r(7 downto 0);
+    remainder <= r(15 downto 8);
+    
+end architecture;
     
