@@ -1817,7 +1817,7 @@ component lab4_seven_segment_display is
           pushbutton : in    std_logic; 
           anode      : out   std_logic_vector (3 downto 0); 
           cathode    : out   std_logic_vector (6 downto 0));
-end lab4_seven_segment_display;
+end component;
     
 
 
