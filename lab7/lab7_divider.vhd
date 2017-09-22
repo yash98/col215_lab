@@ -39,6 +39,7 @@ end entity;
 architecture beh of div is
 
 signal sign: std_logic_vector(1 downto 0);
+signal a:
 
 component twoc is
     port (
