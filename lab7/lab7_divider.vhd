@@ -1317,14 +1317,21 @@ begin
                 elsif (load ='1' and ipvint = '0') then
                     state := "11";
                 end if;
-                c := "001";
+                c := "000";
+                opvalid <= '0';
             elsif (state = "01") then
                 if (load ='0' or ((load = '1') and (ipvint = '0'))) then
-                    if ((("000" < c) or ("000" = c)) and (c < "111")) then
+                    if ((("000" < c) or ("000" = c)) and (c < "110")) then
                         if ((r(13 downto 7) > b(6 downto 0)) or (r(13 downto 7) = b(6 downto 0))) then
-                            r(13 downto 0) <= diff(5 downto 0) & r(6 downto 0) & "1";
+                            r(13 downto 0) <= diff(5 downto 0) & r(6 downto 0) & "0";
+                            r(1) <= '1';
                         else
                             r(13 downto 0) <= r(12 downto 0) & "0";
+                        end if;
+                        c := c + "001";
+                    elsif (c = "110") then
+                        if ((r(13 downto 7) > b(6 downto 0)) or (r(13 downto 7) = b(6 downto 0))) then
+                            r(13 downto 0) <= diff(6 downto 0) & r(6 downto 1) & "1";
                         end if;
                         c := c + "001";
                     end if;
