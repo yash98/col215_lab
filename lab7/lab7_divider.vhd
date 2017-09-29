@@ -1267,6 +1267,8 @@ signal signin: std_logic_vector(1 downto 0);
 signal signout: std_logic_vector(1 downto 0);
 signal a: std_logic_vector(7 downto 0);
 signal b: std_logic_vector(7 downto 0);
+signal a2: std_logic_vector(7 downto 0);
+signal b2: std_logic_vector(7 downto 0);
 signal ipvint: std_logic;
 
 signal r: std_logic_vector(13 downto 0):= "00000000000000";
@@ -1295,6 +1297,19 @@ begin
         c => b
     );
     
+    
+    end2cdividend: twoc port map (
+        e => signout(1),
+        i => r(13 downto 7),
+        c => a2
+    );
+    
+    end2cdivisor: twoc port map (
+        e => signout(0),
+        i => r(6 downto 0),
+        c => b2
+    );
+    
     ipvint <= '0' when divisor = "00000000" else
                 '1';
         
@@ -1309,6 +1324,7 @@ begin
                 if (load = '1' and ipvint = '1') then
                     state := "00";
                 end if;
+                opvalid <= '0';
             elsif (state = "00") then
                 if (load ='1' and ipvint = '1') then
                     r(13 downto 0) <= "000000" & a(6 downto 0) & "0";
@@ -1349,9 +1365,10 @@ begin
                 "11" when signin ="10" else
                 "01" when signin ="01" else
                 "10" when signin ="11";
+                
     
-    remainder <= signout(1) & r(13 downto 7);
-    qoutient <= signout(0) & r(6 downto 0);
+    remainder <= a2;
+    qoutient <= b2;
     inpinvalid <= not ipvint;
     
 end architecture;
