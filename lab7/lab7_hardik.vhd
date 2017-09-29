@@ -38,8 +38,6 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity subtractor is
     port(
     a, b: in std_logic_vector(7 downto 0);
-    ci: in std_logic;
-    co: out std_logic;
     so: out std_logic_vector(7 downto 0)
     );
 end entity;
@@ -85,7 +83,7 @@ begin
                 b => b(I),
                 ci => cint(I-1),
                 s => so(I),
-                co => co 
+                co => ,
             ); 
           end generate top_subtractor;
       end generate subtractor;

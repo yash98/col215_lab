@@ -53,7 +53,9 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity subtractor is
     port(
-    a, b: in std_logic_vector(7 downto 0);
+    a: in std_logic_vector(7 downto 0);
+    b: in std_logic_vector(7 downto 0);
+    co: out std_logic;
     so: out std_logic_vector(7 downto 0)
     );
 end entity;
@@ -62,7 +64,6 @@ architecture beh of subtractor is
 
 signal cint: std_logic_vector(6 downto 0);
 signal zero: std_logic:= '0';
-signal dummy: std_logic;
 
 component fsub
     port(
@@ -100,7 +101,7 @@ begin
                 b => b(I),
                 ci => cint(I-1),
                 s => so(I),
-                co => dummy
+                co => co
             ); 
           end generate top_subtractor;
       end generate subtractor;
@@ -117,7 +118,9 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity div is
     port (
+    clock: in std_logic;
     load: in std_logic;
+    opvalid: out std_logic;
     dividend: in std_logic_vector(7 downto 0);
     divisor: in std_logic_vector(7 downto 0);
     qoutient: out std_logic_vector(7 downto 0);
@@ -127,13 +130,12 @@ end entity;
 
 architecture beh of div is
 
-signal sign: std_logic_vector(1 downto 0);
+signal signin: std_logic_vector(1 downto 0);
+signal signout: std_logic_vector(1 downto 0);
 signal a: std_logic_vector(7 downto 0);
-signal r: std_logic_vector(15 downto 0) := "0000000000000000";
+signal r: std_logic_vector(12 downto 0);
 signal b: std_logic_vector(7 downto 0);
-signal i1: std_logic_vector(7 downto 0);
-signal i2: std_logic_vector(7 downto 0);
-signal o: std_logic_vector(7 downto 0);
+signal ipvint: std_logic;
 
 component twoc is
     port (
@@ -145,50 +147,81 @@ end component;
 
 component subtractor is
     port(
-    a, b: in std_logic_vector(7 downto 0);
-    so: out std_logic_vector(7 downto 0)
+    a: in std_logic_vector(7 downto 0);
+    b: in std_logic_vector(7 downto 0);
+    co: out std_logic;
+    s: out std_logic_vector(7 downto 0)
     );
 end component;
 
 begin
-    sign <= dividend(7) & divisor(7);
-    firstcompdividend: twoc port map (
+    signin <= dividend(7) & divisor(7);
+    
+    first2cdividend: twoc port map (
         e => dividend(7),
         i => dividend,
         c => a
     );
     
-    firstcompdivisor: twoc port map (
+    first2cdivisor: twoc port map (
         e => divisor(7),
         i => divisor,
         c => b
     );
     
-    sub: subtractor port map(
-        a => i1,
-        b => i2,
-        so => o
-        );
+    ipvint <= '0' when divisor = "00000000" else
+                '1';
+                
+   
     
-    
-    process(load)
+    process(clock, load, ipvint)
+    variable state: std_logic_vector(1 downto 0):= "00";
+    variable r: std_logic_vector(11 downto 0);
+    variable c: std_logic_vector(2 downto 0);
     begin
-        if (load = '1') then
-            r(7 downto 0) <= a;
-        end if;
-        for i in 0 to 6 loop
-            r(15 downto 0) <= r(14 downto 0) & "0";
-            if (b<=r(15 downto 8)) then
-                i1 <= r(15 downto 8);
-                i2 <= b;
-                r(15 downto 8) <= o;
-                r(0) <= '1';
+        if ((clock = '1') and clock'event) then
+            if (state = "11") then
+                if (load = '1' and ipvint = '1') then
+                    state := "00";
+                end if;
             end if;
-        end loop;
+            if (state = "00") then
+                if (load ='1' and ipvint = '1') then
+                    r(6 downto 0) := "000000" & a(6 downto 0);
+                elsif (load ='0') then
+                    state := "01";
+                elsif (load ='1' and ipvint = '0') then
+                    state := "11";
+                end if;
+                c := "001";
+            end if;
+            if (state = "01") then
+                if (load ='0' or ((load = '1') and (ipvint = '0'))) then
+                    if (("000" < c) and (c < "111")) then
+                        r(11 downto 0) := r(10 downto 0) & "0";
+                        if (r(12 downto 7) > b(6 downto 0)) then
+                            r(0) := '1';
+                        end if;
+                        c := c + "001";
+                    end if;
+                    if (c = "111") then
+                        opvalid <= '1';
+                    end if;
+                elsif ((load = '1') and (ipvint = '0')) then
+                    state := "00";
+                end if;
+            end if;
+        end if;
     end process;
     
-    qoutient <= r(7 downto 0);
-    remainder <= r(15 downto 8);
+    signout <= "00" when signin ="00" else
+                "11" when signin ="10" else
+                "01" when signin ="01" else
+                "10" when signin ="11";
+    
+    remainder <= signout(1) & r(12 downto 7);
+    qoutient <= signout(0) & r(6 downto 0);
+    opvalid <= ipvint;
     
 end architecture;
     
