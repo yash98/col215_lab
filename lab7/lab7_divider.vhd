@@ -1274,6 +1274,9 @@ signal ipvint: std_logic;
 signal r: std_logic_vector(13 downto 0):= "00000000000000";
 signal diff: std_logic_vector(6 downto 0);
 
+signal r1: std_logic_vector(7 downto 0);
+signal q: std_logic_vector(7 downto 0);
+
 component twoc is
     port (
     e: in std_logic;
@@ -1300,13 +1303,13 @@ begin
     
     end2cdividend: twoc port map (
         e => signout(1),
-        i => r(13 downto 7),
+        i => r1,
         c => a2
     );
     
     end2cdivisor: twoc port map (
         e => signout(0),
-        i => r(6 downto 0),
+        i => q,
         c => b2
     );
     
@@ -1366,7 +1369,8 @@ begin
                 "01" when signin ="01" else
                 "10" when signin ="11";
                 
-    
+    q <= "0" & r(6 downto 0);
+    r1 <= "0" & r(13 downto 7);
     remainder <= a2;
     qoutient <= b2;
     inpinvalid <= not ipvint;
