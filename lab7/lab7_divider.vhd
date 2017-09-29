@@ -1322,7 +1322,7 @@ begin
                 if (load ='0' or ((load = '1') and (ipvint = '0'))) then
                     if ((("000" < c) or ("000" = c)) and (c < "111")) then
                         if ((r(13 downto 7) > b(6 downto 0)) or (r(13 downto 7) = b(6 downto 0))) then
-                            r(13 downto 0) <= diff(5 downto 0) & r(7 downto 0) & "1";
+                            r(13 downto 0) <= diff(5 downto 0) & r(6 downto 0) & "1";
                         else
                             r(13 downto 0) <= r(12 downto 0) & "0";
                         end if;
