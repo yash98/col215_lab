@@ -192,6 +192,7 @@ begin
                     if ((("000" < c) or ("000" = c)) and (c < "111")) then
                         r(13 downto 0) := r(12 downto 0) & "0";
                         if (r(13 downto 7) > b(6 downto 0)) then
+                            r(13 downto 7) := r(13 downto 7) - b(6 downto 0);
                             r(0) := '1';
                         end if;
                         c := c + "001";
@@ -199,7 +200,7 @@ begin
                     if (c = "111") then
                         opvalid <= '1';
                     end if;
-                elsif ((load = '1') and (ipvint = '0')) then
+                elsif ((load = '1') and (ipvint = '1')) then
                     state := "00";
                 end if;
             end if;
