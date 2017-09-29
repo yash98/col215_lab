@@ -121,6 +121,7 @@ entity div is
     clock: in std_logic;
     load: in std_logic;
     opvalid: out std_logic;
+    inpinvalid: out std_logic;
     dividend: in std_logic_vector(7 downto 0);
     divisor: in std_logic_vector(7 downto 0);
     qoutient: out std_logic_vector(7 downto 0);
@@ -133,24 +134,16 @@ architecture beh of div is
 signal signin: std_logic_vector(1 downto 0);
 signal signout: std_logic_vector(1 downto 0);
 signal a: std_logic_vector(7 downto 0);
-signal r: std_logic_vector(12 downto 0);
 signal b: std_logic_vector(7 downto 0);
 signal ipvint: std_logic;
+
+shared variable r: std_logic_vector(13 downto 0):= "00000000000000";
 
 component twoc is
     port (
     e: in std_logic;
     i: in std_logic_vector(7 downto 0);
     c: out std_logic_vector(7 downto 0)
-    );
-end component;
-
-component subtractor is
-    port(
-    a: in std_logic_vector(7 downto 0);
-    b: in std_logic_vector(7 downto 0);
-    co: out std_logic;
-    s: out std_logic_vector(7 downto 0)
     );
 end component;
 
@@ -175,8 +168,7 @@ begin
    
     
     process(clock, load, ipvint)
-    variable state: std_logic_vector(1 downto 0):= "00";
-    variable r: std_logic_vector(11 downto 0);
+    variable state: std_logic_vector(1 downto 0):= "11";
     variable c: std_logic_vector(2 downto 0);
     begin
         if ((clock = '1') and clock'event) then
@@ -187,19 +179,19 @@ begin
             end if;
             if (state = "00") then
                 if (load ='1' and ipvint = '1') then
-                    r(6 downto 0) := "000000" & a(6 downto 0);
+                    r(13 downto 0) := "0000000" & a(6 downto 0);
                 elsif (load ='0') then
                     state := "01";
                 elsif (load ='1' and ipvint = '0') then
                     state := "11";
                 end if;
-                c := "001";
+                c := "000";
             end if;
             if (state = "01") then
                 if (load ='0' or ((load = '1') and (ipvint = '0'))) then
-                    if (("000" < c) and (c < "111")) then
-                        r(11 downto 0) := r(10 downto 0) & "0";
-                        if (r(12 downto 7) > b(6 downto 0)) then
+                    if ((("000" < c) or ("000" = c)) and (c < "111")) then
+                        r(13 downto 0) := r(12 downto 0) & "0";
+                        if (r(13 downto 7) > b(6 downto 0)) then
                             r(0) := '1';
                         end if;
                         c := c + "001";
@@ -219,9 +211,9 @@ begin
                 "01" when signin ="01" else
                 "10" when signin ="11";
     
-    remainder <= signout(1) & r(12 downto 7);
+    remainder <= signout(1) & r(13 downto 7);
     qoutient <= signout(0) & r(6 downto 0);
-    opvalid <= ipvint;
+    inpinvalid <= not ipvint;
     
 end architecture;
     
