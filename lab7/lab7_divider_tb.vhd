@@ -123,7 +123,7 @@ BEGIN
 		
 		load_inputs <= '1';
 
-		wait for 10*clk_period;			-- ensures completion of division
+		wait for 16*clk_period;			-- ensures completion of division
 
 
 		-------------------------------------------------------------

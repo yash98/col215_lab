@@ -1301,13 +1301,13 @@ begin
     );
     
     
-    end2cdividend: twoc port map (
+    end2cremainder: twoc port map (
         e => signout(1),
         i => r1,
         c => a2
     );
     
-    end2cdivisor: twoc port map (
+    end2cquotient: twoc port map (
         e => signout(0),
         i => q,
         c => b2
