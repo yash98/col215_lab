@@ -32,7 +32,6 @@ signal p_down: std_logic_vector(3 downto 0);
 
 signal zero: std_logic_vector(3 downto 0):= "0000";
 
-signal tassign: std_logic;
 
 begin
 -- r_ stores requests to be handled
@@ -43,7 +42,7 @@ begin
         -- r_ register updating
         t_out1 <= "0000";
         t_out2 <= "0000";
-        tassign <= '0';
+
         
         for i in 0 to 3 loop
             if (up_req(i)='1') then
@@ -69,7 +68,39 @@ begin
         end loop;
         
         if (l_dir1="00") then
-            
+            for i in 0 to 3 loop
+                if ((p_up(i) = '1') and (((l_floor1(3 downto i) < p_up(3 downto i)) or (l_floor1(3 downto i) = p_up(3 downto i))))) then
+                    t_out1(i) <= '1';
+                    p_up(i) <= '0';
+                elsif ((p_down(i) = '1') and (((l_floor1(3 downto i) < p_down(3 downto i)) or (l_floor1(3 downto i) = p_down(3 downto i))))) then
+                    t_out1(i) <= '1';
+                    p_down(i) <= '0';
+                 elsif ((p_up(i) = '1') and (((l_floor1(3 downto i) > p_up(3 downto i)) or (l_floor1(3 downto i) = p_up(3 downto i))))) then
+                    t_out1(i) <= '1';
+                    p_up(i) <= '0';
+                elsif ((p_down(i) = '1') and (((l_floor1(3 downto i) > p_down(3 downto i)) or (l_floor1(3 downto i) = p_down(3 downto i))))) then
+                    t_out1(i) <= '1';
+                    p_down(i) <= '0';
+                end if;
+            end loop;
+        end if;
+        
+        if (l_dir2="00") then
+            for i in 0 to 3 loop
+                if ((p_up(i) = '1') and (((l_floor2(3 downto i) < p_up(3 downto i)) or (l_floor2(3 downto i) = p_up(3 downto i))))) then
+                    t_out2(i) <= '1';
+                    p_up(i) <= '0';
+                elsif ((p_down(i) = '1') and (((l_floor2(3 downto i) < p_down(3 downto i)) or (l_floor2(3 downto i) = p_down(3 downto i))))) then
+                    t_out2(i) <= '1';
+                    p_down(i) <= '0';
+                 elsif ((p_up(i) = '1') and (((l_floor2(3 downto i) > p_up(3 downto i)) or (l_floor2(3 downto i) = p_up(3 downto i))))) then
+                    t_out2(i) <= '1';
+                    p_up(i) <= '0';
+                elsif ((p_down(i) = '1') and (((l_floor2(3 downto i) > p_down(3 downto i)) or (l_floor2(3 downto i) = p_down(3 downto i))))) then
+                    t_out2(i) <= '1';
+                    p_down(i) <= '0';
+                end if;
+            end loop;
         end if;
         
         for i in 0 to 3 loop
@@ -77,22 +108,33 @@ begin
             if (l_floor1(i) = '1') then
                 if (((l_floor1(3 downto i) < up_req(3 downto i)) or (l_floor1(3 downto i) = up_req(3 downto i))) and (l_dir1 = "01")) then
                     t_out1(3 downto i) <= up_req(3 downto i);
-                    p_up(3 downto 0) <= zero(3 downto i);
+                    p_up(3 downto i) <= zero(3 downto i);
                 elsif (((l_floor1(i downto 0) > down_req(i downto 0)) or (l_floor1(i downto 0) = down_req(i downto 0))) and (l_dir1 = "10")) then
                     t_out1(i downto 0) <= down_req(i downto 0);
-                    p_down <= zero(i downto 0);
+                    p_down(i downto 0) <= zero(i downto 0);
                 end if;
             elsif (l_floor2(i) = '1') then
                 if (((l_floor2(3 downto i) < up_req(3 downto i)) or (l_floor2(3 downto i) = up_req(3 downto i))) and (l_dir2 = "01")) then
                     t_out2(3 downto i) <= up_req(3 downto i);
-                    p_up(3 downto 0) <= zero(3 downto i);
+                    p_up(3 downto i) <= zero(3 downto i);
                 elsif (((l_floor2(i downto 0) < down_req(i downto 0)) or (l_floor2(i downto 0) = down_req(i downto 0))) and (l_dir2 = "10")) then
                     t_out2(i downto 0) <= down_req(i downto 0);
-                    p_down <= zero(i downto 0);
+                    p_down(i downto 0) <= zero(i downto 0);
                 end if;
             end if;
         end loop;
     end if;
+    
+    -- reset
+    if (reset = '1') then
+        r_up <= "0000";
+        p_up <= "0000";
+        r_down <= "0000";
+        p_down <= "0000";
+        t_out1 <= "0000";
+        t_out2 <= "0000";
+    end if;
+    
 end process;
 
 end architecture;
