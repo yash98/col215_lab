@@ -34,16 +34,14 @@ signal zero: std_logic_vector(3 downto 0):= "0000";
 
 
 begin
--- r_ stores requests to be handled
--- s_ 1 denotes request is assigned to lift or not type - upup downdown
 process(clk)
 begin
     if rising_edge(clk) then
-        -- r_ register updating
+        -- t_out out to default
         t_out1 <= "0000";
         t_out2 <= "0000";
 
-        -- r_ and s_ updating
+        -- r_ and p_ updating
         
         for i in 0 to 3 loop
             if (up_req(i)='1') then
@@ -141,6 +139,7 @@ end process;
 
 end architecture;
 
+-------------------------------------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
@@ -148,46 +147,132 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity lift_controller is
 port (
-    lift_floor: in std_logic_vector(3 downto 0);
+    rest: in std_logic;
+    clk: in std_logic;
     door_open: in std_logic;
-    reset: in std_logic_vector;
-    task_in: in std_logic_vector(3 downto 0); -- input from request_handler
     door_close: in std_logic;
-    lift_status: out std_logic_vector()
+    reset: in std_logic_vector;
+    t_in: in std_logic_vector(3 downto 0);
+    l_floor: out std_logic_vector(3 downto 0);
+    t_done: out std_logic_vector(3 downto 0);
+    l_dir: out std_logic_vector(1 downto 0)
 );
 end entity;
 
 architecture beh of lift_controller is
 signal task: std_logic_vector(3 downto 0);
-signal floorno: std_logic_vector(1 downto 0);
-signal state: std_logic_vector(1 downto 0); -- up down open close
+signal dir: std_logic_vector(1 downto 0); -- up down open close
 signal idle: std_logic; -- 2 states
 begin
 -- lift opens one every task
 -- task is edited when lift reaches a floor or task sent from request_handler
 -- open close changed internally
+
+
+
 end architecture;
 
+--------------------------------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-entity status_display is
-port(
-    clock in std_logic;
-    liftstat1: in std_logic_vector();
-    liftstat2:in std_logic_vector();
-    up_request_ind: in std_logic_vector(3 downto 0);
-    down_request_ind: in std_logic_vector(3 downto 0);
-    led_output: out std_logic_vector(15 downto 0);
-    cathode: out std_logic_vector(6 downto 0);
-    anode: out std_logic_vector(3 downto 0)
-);
-
+entity lab8_ssd is
+port (
+    lift1floor: in std_logic_vector(1 downto 0);
+    lift2floor: in std_logic_vector(1 downto 0);
+    lift1state: in std_logic_vector(2 downto 0); -- 0=goingup  1=goingdown  2=idle  3=dooropen  4=doorclose
+    lift2state: in std_logic_vector(2 downto 0);
+    clk: in std_logic;
+    anode: out std_logic_vector (3 downto 0);
+    cathode: out std_logic_vector (6 downto 0)
+    );
 end entity;
-architecture status_display of status_display is
+
+architecture beh of lab8_ssd is
+
+signal c: std_logic_vector (0 to 27) := "0000000000000000000000000000";
+signal req1: std_logic_vector (0 to 27) := "0000000000011000011010100000"; --binary for 100,000
+signal mod_clk: std_logic_vector (0 to 27) := "0000000000000000000000000000";
+ 
 begin
--- floor and lift status display
--- ledoutput request indicators and lift floor button press
-end architecture;
+    process(clk)
+        begin
+            if (clk = '1' and clk'event) then
+                
+                if (c = req1) then
+                    c <= "0000000000000000000000000000";
+                    mod_clk <= mod_clk + "0000000000000000000000000001";
+                    
+                    if mod_clk = "0000000000000000001111101000" then --1000
+                        mod_clk <= "0000000000000000000000000000";
+                    end if;
+                        
+                else
+                    c <= c + "0000000000000000000000000001";
+                end if;
+            
+            
+            
+                
+                if (mod_clk>= "0000000000000000000000000000" and mod_clk< "0000000000000000000011111010") then
+                    anode<="0001";
+                    
+                    if(lift2floor = "00") then
+                        cathode<="1000000";
+                    elsif(lift2floor = "01") then
+                        cathode<="1111001";
+                    elsif(lift2floor = "10") then
+                        cathode<="0100100";
+                    elsif(lift2floor = "11") then
+                        cathode<="0110000";
+                    end if;
+                end if;
+                
+                if (mod_clk>= "0000000000000000000011111010" and mod_clk< "0000000000000000000111110100") then
+                    anode<="0010";
+                    
+                    if(lift2state = "00") then
+                        cathode<="1100011";
+                    elsif(lift2state = "01") then
+                        cathode<="0100001";
+                    elsif(lift2state = "10") then
+                        cathode<="0100011";
+                    elsif(lift2state = "11") then
+                        cathode<="0100111";
+                    end if;
+                end if;
+                
+                if (mod_clk>= "0000000000000000000111110100" and mod_clk< "0000000000000000001011101110") then
+                    anode<="0100";
+                    
+                    if(lift1floor = "00") then
+                        cathode<="1000000";
+                    elsif(lift1floor = "01") then
+                        cathode<="1111001";
+                    elsif(lift1floor = "10") then
+                        cathode<="0100100";
+                    elsif(lift1floor = "11") then
+                        cathode<="0110000";
+                    end if;
+                end if;
+                
+                
+                if (mod_clk>= "0000000000000000001011101110" and mod_clk< "0000000000000000001111101000") then
+                    anode<="1000";
+                    
+                    if(lift1state = "00") then
+                        cathode<="1100011";
+                    elsif(lift1state = "01") then
+                        cathode<="0100001";
+                    elsif(lift1state = "10") then
+                        cathode<="0100011";
+                    elsif(lift1state = "11") then
+                        cathode<="0100111";
+                    end if;
+                end if;
+            
+            end if;
+     end process;
+end architecture;        
