@@ -30,6 +30,8 @@ signal p_up: std_logic_vector(3 downto 0);
 signal r_down: std_logic_vector(3 downto 0);
 signal p_down: std_logic_vector(3 downto 0);
 
+signal zero: std_logic_vector(3 downto 0):= "0000";
+
 signal tassign: std_logic;
 
 begin
@@ -66,19 +68,27 @@ begin
             end if;
         end loop;
         
+        if (l_dir1="00") then
+            
+        end if;
+        
         for i in 0 to 3 loop
-        -- priority task assignment
+        -- non idle states task assignment
             if (l_floor1(i) = '1') then
                 if (((l_floor1(3 downto i) < up_req(3 downto i)) or (l_floor1(3 downto i) = up_req(3 downto i))) and (l_dir1 = "01")) then
                     t_out1(3 downto i) <= up_req(3 downto i);
+                    p_up(3 downto 0) <= zero(3 downto i);
                 elsif (((l_floor1(i downto 0) > down_req(i downto 0)) or (l_floor1(i downto 0) = down_req(i downto 0))) and (l_dir1 = "10")) then
                     t_out1(i downto 0) <= down_req(i downto 0);
+                    p_down <= zero(i downto 0);
                 end if;
             elsif (l_floor2(i) = '1') then
                 if (((l_floor2(3 downto i) < up_req(3 downto i)) or (l_floor2(3 downto i) = up_req(3 downto i))) and (l_dir2 = "01")) then
                     t_out2(3 downto i) <= up_req(3 downto i);
+                    p_up(3 downto 0) <= zero(3 downto i);
                 elsif (((l_floor2(i downto 0) < down_req(i downto 0)) or (l_floor2(i downto 0) = down_req(i downto 0))) and (l_dir2 = "10")) then
                     t_out2(i downto 0) <= down_req(i downto 0);
+                    p_down <= zero(i downto 0);
                 end if;
             end if;
         end loop;
