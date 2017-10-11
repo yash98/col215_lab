@@ -69,16 +69,16 @@ begin
         -- idle satae task assign
         if (l_dir1="00") then
             for i in 0 to 3 loop
-                if ((p_up(i) = '1') and (((l_floor1(3 downto i) < p_up(3 downto i)) or (l_floor1(3 downto i) = p_up(3 downto i))))) then
+                if (p_up(i) = '1') and (((l_floor1(3 downto i) <= p_up(3 downto i)))) then
                     t_out1(i) <= '1';
                     p_up(i) <= '0';
-                elsif ((p_down(i) = '1') and (((l_floor1(3 downto i) < p_down(3 downto i)) or (l_floor1(3 downto i) = p_down(3 downto i))))) then
+                elsif ((p_down(i) = '1') and ((l_floor1(3 downto i) <= p_down(3 downto i)))) then
                     t_out1(i) <= '1';
                     p_down(i) <= '0';
-                 elsif ((p_up(i) = '1') and (((l_floor1(3 downto i) > p_up(3 downto i)) or (l_floor1(3 downto i) = p_up(3 downto i))))) then
+                 elsif ((p_up(i) = '1') and (l_floor1(3 downto i) >= p_up(3 downto i))) then
                     t_out1(i) <= '1';
                     p_up(i) <= '0';
-                elsif ((p_down(i) = '1') and (((l_floor1(3 downto i) > p_down(3 downto i)) or (l_floor1(3 downto i) = p_down(3 downto i))))) then
+                elsif ((p_down(i) = '1') and (l_floor1(3 downto i) >= p_down(3 downto i))) then
                     t_out1(i) <= '1';
                     p_down(i) <= '0';
                 end if;
@@ -87,16 +87,16 @@ begin
         
         if (l_dir2="00") then
             for i in 0 to 3 loop
-                if ((p_up(i) = '1') and (((l_floor2(3 downto i) < p_up(3 downto i)) or (l_floor2(3 downto i) = p_up(3 downto i))))) then
+                if ((p_up(i) = '1') and (l_floor2(3 downto i) <= p_up(3 downto i))) then
                     t_out2(i) <= '1';
                     p_up(i) <= '0';
-                elsif ((p_down(i) = '1') and (((l_floor2(3 downto i) < p_down(3 downto i)) or (l_floor2(3 downto i) = p_down(3 downto i))))) then
+                elsif ((p_down(i) = '1') and (l_floor2(3 downto i) <= p_down(3 downto i))) then
                     t_out2(i) <= '1';
                     p_down(i) <= '0';
-                 elsif ((p_up(i) = '1') and (((l_floor2(3 downto i) > p_up(3 downto i)) or (l_floor2(3 downto i) = p_up(3 downto i))))) then
+                 elsif ((p_up(i) = '1') and (l_floor2(3 downto i) >= p_up(3 downto i))) then
                     t_out2(i) <= '1';
                     p_up(i) <= '0';
-                elsif ((p_down(i) = '1') and (((l_floor2(3 downto i) > p_down(3 downto i)) or (l_floor2(3 downto i) = p_down(3 downto i))))) then
+                elsif ((p_down(i) = '1') and (l_floor2(3 downto i) >= p_down(3 downto i))) then
                     t_out2(i) <= '1';
                     p_down(i) <= '0';
                 end if;
@@ -106,18 +106,18 @@ begin
         for i in 0 to 3 loop
         -- non idle states task assignment
             if (l_floor1(i) = '1') then
-                if (((l_floor1(3 downto i) < up_req(3 downto i)) or (l_floor1(3 downto i) = up_req(3 downto i))) and (l_dir1 = "01")) then
+                if ((l_floor1(3 downto i) <= up_req(3 downto i)) and (l_dir1 = "01")) then
                     t_out1(3 downto i) <= up_req(3 downto i);
                     p_up(3 downto i) <= zero(3 downto i);
-                elsif (((l_floor1(i downto 0) > down_req(i downto 0)) or (l_floor1(i downto 0) = down_req(i downto 0))) and (l_dir1 = "10")) then
+                elsif ((l_floor1(i downto 0) >= down_req(i downto 0)) and (l_dir1 = "10")) then
                     t_out1(i downto 0) <= down_req(i downto 0);
                     p_down(i downto 0) <= zero(i downto 0);
                 end if;
             elsif (l_floor2(i) = '1') then
-                if (((l_floor2(3 downto i) < up_req(3 downto i)) or (l_floor2(3 downto i) = up_req(3 downto i))) and (l_dir2 = "01")) then
+                if ((l_floor2(3 downto i) <= up_req(3 downto i)) and (l_dir2 = "01")) then
                     t_out2(3 downto i) <= up_req(3 downto i);
                     p_up(3 downto i) <= zero(3 downto i);
-                elsif (((l_floor2(i downto 0) < down_req(i downto 0)) or (l_floor2(i downto 0) = down_req(i downto 0))) and (l_dir2 = "10")) then
+                elsif ((l_floor2(i downto 0) <= down_req(i downto 0)) and (l_dir2 = "10")) then
                     t_out2(i downto 0) <= down_req(i downto 0);
                     p_down(i downto 0) <= zero(i downto 0);
                 end if;
@@ -160,15 +160,25 @@ port (
 end entity;
 
 architecture beh of lift_controller is
+
 signal task: std_logic_vector(3 downto 0);
 signal dir: std_logic_vector(1 downto 0); -- up down open close
-signal idle: std_logic; -- 2 states
+signal oc: std_logic_vector(1 downto 0); -- 2 states
+
 begin
--- lift opens one every task
--- task is edited when lift reaches a floor or task sent from request_handler
--- open close changed internally
 
+process(clk)
+begin
+if rising_edge(clk) then
 
+    for i in 0 to 3 loop
+        if (t_in(i) = '1') then
+            task(i) <=  '1';
+        end if;
+    end loop;
+
+end if;
+end process;
 
 end architecture;
 
