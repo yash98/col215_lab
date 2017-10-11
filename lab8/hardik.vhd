@@ -18,7 +18,7 @@ end entity;
 architecture beh of lab8_ssd is
 
 signal c: std_logic_vector (0 to 27) := "0000000000000000000000000000";
-signal req1: std_logic_vector (0 to 27) := "0000000000000000000001100100"; --binary for 100
+signal req1: std_logic_vector (0 to 27) := "0000000000011000011010100000"; --binary for 100,000
 signal mod_clk: std_logic_vector (0 to 27) := "0000000000000000000000000000";
  
 begin
@@ -30,7 +30,7 @@ begin
                     c <= "0000000000000000000000000000";
                     mod_clk <= mod_clk + "0000000000000000000000000001";
                     
-                    if mod_clk = "0000000000000000001111101000" then
+                    if mod_clk = "0000000000000000001111101000" then --1000
                         mod_clk <= "0000000000000000000000000000";
                     end if;
                         
