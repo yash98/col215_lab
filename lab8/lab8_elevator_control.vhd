@@ -151,7 +151,8 @@ port (
     clk: in std_logic;
     door_open: in std_logic;
     door_close: in std_logic;
-    reset: in std_logic_vector;
+    reset: in std_logic;
+    l_button: in std_logic_vector(3 downto 0);
     t_in: in std_logic_vector(3 downto 0);
     l_floor: out std_logic_vector(3 downto 0);
     t_done: out std_logic_vector(3 downto 0);
@@ -164,6 +165,7 @@ architecture beh of lift_controller is
 signal task: std_logic_vector(3 downto 0);
 signal dir: std_logic_vector(1 downto 0); -- up down open close
 signal oc: std_logic_vector(1 downto 0); -- 2 states
+signal lf: std_logic_vector(3 downto 0);
 
 begin
 
@@ -172,10 +174,12 @@ begin
 if rising_edge(clk) then
 
     for i in 0 to 3 loop
-        if (t_in(i) = '1') then
+        if (t_in(i) = '1' or ((l_button(i) = '1') and not (lf(i) = l_button(i)))) then
             task(i) <=  '1';
         end if;
     end loop;
+    
+    
 
 end if;
 end process;
