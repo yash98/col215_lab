@@ -43,6 +43,7 @@ begin
         t_out1 <= "0000";
         t_out2 <= "0000";
 
+        -- r_ and s_ updating
         
         for i in 0 to 3 loop
             if (up_req(i)='1') then
@@ -67,6 +68,7 @@ begin
             end if;
         end loop;
         
+        -- idle satae task assign
         if (l_dir1="00") then
             for i in 0 to 3 loop
                 if ((p_up(i) = '1') and (((l_floor1(3 downto i) < p_up(3 downto i)) or (l_floor1(3 downto i) = p_up(3 downto i))))) then
