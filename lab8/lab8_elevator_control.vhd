@@ -22,6 +22,7 @@ port (
 );
 end entity;
 
+
 architecture beh of request_handler is
 -- two sets of register
 signal r_up: std_logic_vector(3 downto 0);
@@ -83,9 +84,7 @@ begin
                     p_down(i) <= '0';
                 end if;
             end loop;
-        end if;
-        
-        if (l_dir2="00") then
+        elsif (l_dir2="00") then
             for i in 0 to 3 loop
                 if ((p_up(i) = '1') and (l_floor2(3 downto i) <= p_up(3 downto i))) then
                     t_out2(i) <= '1';
@@ -137,6 +136,9 @@ begin
     
 end process;
 
+up_req_ind <= r_up;
+down_req_ind <= r_down;
+
 end architecture;
 
 -------------------------------------------------------------------------------------------------------------
@@ -162,27 +164,63 @@ end entity;
 
 architecture beh of lift_controller is
 
+signal zero: std_logic_vector(34 downto 0):= "00000000000000000000000000000000000";
 signal task: std_logic_vector(3 downto 0);
-signal dir: std_logic_vector(1 downto 0); -- up down open close
-signal oc: std_logic_vector(1 downto 0); -- 2 states
+signal dir: std_logic_vector(1 downto 0); -- up down idle
 signal lf: std_logic_vector(3 downto 0);
+signal eoc: std_logic_vector(34 downto 0);
+signal c: std_logic_vector(34 downto 0);
+signal t: std_logic_vector(1 downto 0); -- state of time
+signal s: std_logic_vector(1 downto 0); -- "00" = movement "01" = opening "10" = closing
+signal done: std_logic;
+signal initial: std_logic;
 
 begin
+
+eoc <= "10010101000000101111100100000000000" when t = "11" else
+        "00100101010000001011111001000000000" when t = "10" else
+        "00000111011100110101100101000000000" when t = "01";
+
 
 process(clk)
 begin
 if rising_edge(clk) then
-
+    
+    -- counter
+    if (initial = '0') then
+        c <= "00000000000000000000000000000000001";
+        initial <= '1';
+        done <= '0';
+    else
+        if (c = eoc) then
+            done <= '1';
+        else
+            c <= c + "00000000000000000000000000000000001";
+        end if;
+    end if;
+    
+    -- t_in & lift buttons registered 
     for i in 0 to 3 loop
         if (t_in(i) = '1' or ((l_button(i) = '1') and not (lf(i) = l_button(i)))) then
             task(i) <=  '1';
         end if;
     end loop;
     
+    -- l_dir decision
+    if (lf>=task) then
+        l_dir <= "10";
+    elsif (lf<=task) then
+        l_dir <= "01";
+    elsif (task="0000") then
+        l_dir <= "00";
+    end if;
+    
     
 
 end if;
 end process;
+
+l_floor <= lf;
 
 end architecture;
 
