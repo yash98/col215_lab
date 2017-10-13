@@ -1,3 +1,6 @@
+-- task_buttons, task_up, task_down
+-- corresponding in out and registers
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
@@ -57,31 +60,35 @@ begin
             -- delete done requests from r_
             -- deletes all kind of done external requests
             if ((t_done1(i)='1') and (l_dir1="01")) then
-                if (r_up(i)='1') then
+                if (p_up(i)='0') then
                     -- up up handled
                     r_up(i) <= '0';
-                else
+                end if;
+                if (p_down(i)='0') then
                     -- up down handled
                     r_down(i) <= '0';
                 end if;
             elsif ((t_done1(i)='1') and (l_dir1="10")) then
-                if (r_down(i)='1') then
+                if (p_down(i)='0') then
                     r_down(i) <= '0';
-                else
+                end if;
+                if (p_up(i)='0') then
                     r_up(i) <= '0';
                 end if;
             end if;
             if ((t_done2(i)='1') and (l_dir2="01")) then
-                if (r_up(i)='1') then
+                if (p_up(i)='0') then
                     r_up(i) <= '0';
-                else
+                end if;
+                if (p_down(i)='0') then
                     r_down(i) <= '0';
                 end if;
             end if;
             if ((t_done2(i)='1') and (l_dir2="10")) then
-               if (r_down(i)='1') then
+               if (p_down(i)='0') then
                     r_down(i) <= '0';
-                else
+                end if;
+                if (p_up(i)='0') then
                     r_up(i) <= '0';
                 end if;
             end if;
