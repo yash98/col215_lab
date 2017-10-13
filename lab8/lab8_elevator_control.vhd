@@ -279,8 +279,17 @@ if rising_edge(clk) then
         end if;
     end loop;
     
+    -- force door open close
     if (not (s="00")) then
-        
+        if (door_open='1' and (s="10")) then
+            initial <= '0';
+            t <= "10";
+            s <= "01";
+        elsif ((door_close='1')and(s="01")) then
+            initial <= '0';
+            t <= "01";
+            s <= "10";
+        end if;
     end if;
     
 end if;
