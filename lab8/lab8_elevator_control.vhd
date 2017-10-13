@@ -273,9 +273,26 @@ if rising_edge(clk) then
         l_dir_i <= "01";
     end if;
     
+    -- sequence of movemement, opening, closing
     for i in 0 to 3 loop
         if ((task(i) = lf(i)) and (lf(i) = '1')) then
-            
+            if (done='1') then
+                if (s="00") then
+                    if (l_dir_i="01") then
+                        lf <= lf(2 downto 0) + "0";
+                    elsif (l_dir_i="10") then
+                        lf <= lf(3 downto 1) + "1";
+                    end if;
+                    s <= "01";
+                    t <= "10";
+                elsif (s="01") then
+                    s <= "10";
+                    t <= "10";
+                elsif (s="10") then
+                    s <= "00";
+                    t <= "11";
+                end if;
+            end if;
         end if;
     end loop;
     
@@ -285,10 +302,12 @@ if rising_edge(clk) then
             initial <= '0';
             t <= "10";
             s <= "01";
+            initial <= '0';
         elsif ((door_close='1')and(s="01")) then
             initial <= '0';
             t <= "01";
             s <= "10";
+            initial <= '0';
         end if;
     end if;
     
