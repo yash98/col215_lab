@@ -135,18 +135,35 @@ begin
             if (l_floor1(i) = '1') then
                 if ((l_floor1(3 downto i) <= up_req(3 downto i)) and (l_dir1 = "01")) then
                     t_out1(3 downto i) <= up_req(3 downto i);
-                    p_up(3 downto i) <= zero(3 downto i);
+                    for j in 0 to 3-i loop
+                        if (up_req(3-i+j)='1') then
+                            p_up(3-i+j) <= '0';
+                        end if;
+                    end loop;
                 elsif ((l_floor1(i downto 0) >= down_req(i downto 0)) and (l_dir1 = "10")) then
                     t_out1(i downto 0) <= down_req(i downto 0);
                     p_down(i downto 0) <= zero(i downto 0);
+                    for j in 0 to i loop
+                        if (down_req(i)='1') then
+                            p_down(i) <= '0';
+                        end if;
+                    end loop;
                 end if;
             elsif (l_floor2(i) = '1') then
                 if ((l_floor2(3 downto i) <= up_req(3 downto i)) and (l_dir2 = "01")) then
                     t_out2(3 downto i) <= up_req(3 downto i);
-                    p_up(3 downto i) <= zero(3 downto i);
+                    for j in 0 to 3-i loop
+                        if (up_req(3-i+j)='1') then
+                            p_up(3-i+j) <= '0';
+                        end if;
+                    end loop;
                 elsif ((l_floor2(i downto 0) <= down_req(i downto 0)) and (l_dir2 = "10")) then
                     t_out2(i downto 0) <= down_req(i downto 0);
-                    p_down(i downto 0) <= zero(i downto 0);
+                    for j in 0 to i loop
+                        if (down_req(i)='1') then
+                            p_down(i) <= '0';
+                        end if;
+                    end loop;
                 end if;
             end if;
         end loop;
@@ -193,22 +210,26 @@ end entity;
 architecture beh of lift_controller is
 
 signal zero: std_logic_vector(34 downto 0):= "00000000000000000000000000000000000";
-signal task: std_logic_vector(3 downto 0);
+
+signal task: std_logic_vector(3 downto 0); -- register that store whether to open door when lift reaches that floor
 signal dir: std_logic_vector(1 downto 0); -- up down idle
-signal lf: std_logic_vector(3 downto 0);
+signal lf: std_logic_vector(3 downto 0); -- floor of lift
+
+-- counter related
 signal eoc: std_logic_vector(34 downto 0);
 signal c: std_logic_vector(34 downto 0);
 signal t: std_logic_vector(1 downto 0); -- state of time
 signal s: std_logic_vector(1 downto 0); -- "00" = movement "01" = opening "10" = closing
-signal done: std_logic;
-signal initial: std_logic;
+signal done: std_logic; -- lock
+signal initial: std_logic; -- relaese lock start new counting
+
 signal l_dir_i: std_logic_vector(1 downto 0);
 
 begin
 
-eoc <= "10010101000000101111100100000000000" when t = "11" else
-        "00100101010000001011111001000000000" when t = "10" else
-        "00000111011100110101100101000000000" when t = "01";
+eoc <= "10010101000000101111100100000000000" when t = "11" else -- 2 s
+        "00100101010000001011111001000000000" when t = "10" else -- 0.5 s
+        "00000111011100110101100101000000000" when t = "01"; -- 0.1 s
 
 
 process(clk)
@@ -230,8 +251,16 @@ if rising_edge(clk) then
     
     -- t_in & lift buttons registered 
     for i in 0 to 3 loop
-        if (t_in(i) = '1' or ((l_button(i) = '1') and not (lf(i) = l_button(i)))) then
+        if (t_in(i) = '1') then
             task(i) <=  '1';
+        end if;
+        -- if lift going in direction dont even take request for opposite direction to lift button
+        if ((l_button(i) = '1') and not (lf(i) = l_button(i))) then
+            if ((lf(3 downto i)<l_button(3 downto i)) and (l_dir_i="01")) then
+                task(i) <=  '1';
+            elsif ((lf(i downto 0)>l_button(i downto 0)) and (l_dir_i="10")) then
+                task(i) <=  '1';
+            end if;
         end if;
     end loop;
     
@@ -244,11 +273,16 @@ if rising_edge(clk) then
         l_dir_i <= "01";
     end if;
     
-    if (l_dir_i = "00") then
-        s <= "00";
-    elsif () then
+    for i in 0 to 3 loop
+        if ((task(i) = lf(i)) and (lf(i) = '1')) then
+            
+        end if;
+    end loop;
     
-
+    if (not (s="00")) then
+        
+    end if;
+    
 end if;
 end process;
 
