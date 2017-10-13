@@ -53,51 +53,79 @@ begin
                 r_down(i) <= '1';
                 p_down(i) <= '1';
             end if;
+            
+            -- delete done requests from r_
+            -- deletes all kind of done external requests
             if ((t_done1(i)='1') and (l_dir1="01")) then
-                r_up(i) <= '0';
-            end if;
-            if ((t_done1(i)='1') and (l_dir1="10")) then
-                r_down(i) <= '0';
+                if (r_up(i)='1') then
+                    -- up up handled
+                    r_up(i) <= '0';
+                else
+                    -- up down handled
+                    r_down(i) <= '0';
+                end if;
+            elsif ((t_done1(i)='1') and (l_dir1="10")) then
+                if (r_down(i)='1') then
+                    r_down(i) <= '0';
+                else
+                    r_up(i) <= '0';
+                end if;
             end if;
             if ((t_done2(i)='1') and (l_dir2="01")) then
-                r_up(i) <= '0';
+                if (r_up(i)='1') then
+                    r_up(i) <= '0';
+                else
+                    r_down(i) <= '0';
+                end if;
             end if;
             if ((t_done2(i)='1') and (l_dir2="10")) then
-                r_down(i) <= '0';
+               if (r_down(i)='1') then
+                    r_down(i) <= '0';
+                else
+                    r_up(i) <= '0';
+                end if;
             end if;
         end loop;
         
-        -- idle satae task assign
+        -- idle state task assign
         if (l_dir1="00") then
             for i in 0 to 3 loop
-                if (p_up(i) = '1') and (((l_floor1(3 downto i) <= p_up(3 downto i)))) then
-                    t_out1(i) <= '1';
-                    p_up(i) <= '0';
-                elsif ((p_down(i) = '1') and ((l_floor1(3 downto i) <= p_down(3 downto i)))) then
-                    t_out1(i) <= '1';
-                    p_down(i) <= '0';
-                 elsif ((p_up(i) = '1') and (l_floor1(3 downto i) >= p_up(3 downto i))) then
-                    t_out1(i) <= '1';
-                    p_up(i) <= '0';
-                elsif ((p_down(i) = '1') and (l_floor1(3 downto i) >= p_down(3 downto i))) then
-                    t_out1(i) <= '1';
-                    p_down(i) <= '0';
+                if (p_up(3-i) = '1') and (((l_floor1(3 downto 3-i) <= p_up(3 downto 3-i)))) then
+                    t_out1(3-i) <= '1';
+                    p_up(3-i) <= '0';
+                    exit;
+                elsif ((p_down(3-i) = '1') and ((l_floor1(3 downto 3-i) <= p_down(3 downto 3-i)))) then
+                    t_out1(3-i) <= '1';
+                    p_down(3-i) <= '0';
+                    exit;
+                elsif ((p_up(3-i) = '1') and (l_floor1(3 downto 3-i) >= p_up(3 downto 3-i))) then
+                    t_out1(3-i) <= '1';
+                    p_up(3-i) <= '0';
+                    exit;
+                elsif ((p_down(3-i) = '1') and (l_floor1(3 downto i) >= p_down(3 downto i))) then
+                    t_out1(3-i) <= '1';
+                    p_down(3-i) <= '0';
+                    exit;
                 end if;
             end loop;
         elsif (l_dir2="00") then
             for i in 0 to 3 loop
-                if ((p_up(i) = '1') and (l_floor2(3 downto i) <= p_up(3 downto i))) then
-                    t_out2(i) <= '1';
-                    p_up(i) <= '0';
-                elsif ((p_down(i) = '1') and (l_floor2(3 downto i) <= p_down(3 downto i))) then
-                    t_out2(i) <= '1';
-                    p_down(i) <= '0';
-                 elsif ((p_up(i) = '1') and (l_floor2(3 downto i) >= p_up(3 downto i))) then
-                    t_out2(i) <= '1';
-                    p_up(i) <= '0';
-                elsif ((p_down(i) = '1') and (l_floor2(3 downto i) >= p_down(3 downto i))) then
-                    t_out2(i) <= '1';
-                    p_down(i) <= '0';
+                if ((p_up(3-i) = '1') and (l_floor2(3 downto 3-i) <= p_up(3 downto 3-i))) then
+                    t_out2(3-i) <= '1';
+                    p_up(3-i) <= '0';
+                    exit;
+                elsif ((p_down(3-i) = '1') and (l_floor2(3 downto 3-i) <= p_down(3 downto 3-i))) then
+                    t_out2(3-i) <= '1';
+                    p_down(3-i) <= '0';
+                    exit;
+                 elsif ((p_up(3-i) = '1') and (l_floor2(3 downto 3-i) >= p_up(3 downto 3-i))) then
+                    t_out2(3-i) <= '1';
+                    p_up(3-i) <= '0';
+                    exit;
+                elsif ((p_down(3-i) = '1') and (l_floor2(3 downto 3-i) >= p_down(3 downto 3-i))) then
+                    t_out2(3-i) <= '1';
+                    p_down(3-i) <= '0';
+                    exit;
                 end if;
             end loop;
         end if;
@@ -174,6 +202,7 @@ signal t: std_logic_vector(1 downto 0); -- state of time
 signal s: std_logic_vector(1 downto 0); -- "00" = movement "01" = opening "10" = closing
 signal done: std_logic;
 signal initial: std_logic;
+signal l_dir_i: std_logic_vector(1 downto 0);
 
 begin
 
@@ -207,14 +236,17 @@ if rising_edge(clk) then
     end loop;
     
     -- l_dir decision
-    if (lf>=task) then
-        l_dir <= "10";
+    if (task="0000") then
+        l_dir_i <= "00";
+    elsif (lf>=task) then
+        l_dir_i <= "10";
     elsif (lf<=task) then
-        l_dir <= "01";
-    elsif (task="0000") then
-        l_dir <= "00";
+        l_dir_i <= "01";
     end if;
     
+    if (l_dir_i = "00") then
+        s <= "00";
+    elsif () then
     
 
 end if;
