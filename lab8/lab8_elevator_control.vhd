@@ -45,11 +45,11 @@ begin
         -- r_ and p_ updating
         
         for i in 0 to 3 loop
-            if (up_req(i)='1') then
+            if (up_req(i)='1' and up_req(3)='0') then
                 r_up(i) <= '1';
                 p_up(i) <= '1';
             end if;
-            if (down_req(i)='1') then
+            if (down_req(i)='1' and down_req(0)='0') then
                 r_down(i) <= '1';
                 p_down(i) <= '1';
             end if;
@@ -203,7 +203,11 @@ port (
     t_in: in std_logic_vector(3 downto 0);
     l_floor: out std_logic_vector(3 downto 0);
     t_done: out std_logic_vector(3 downto 0);
-    l_dir: out std_logic_vector(1 downto 0)
+    l_dir: out std_logic_vector(1 downto 0);
+    l_button_ind: out std_logic_vector(3 downto 0);
+    
+    l_state_ssd: out std_logic_vector(2 downto 0);
+    l_floor_ssd: out std_logic_vector(1 downto 0)
 );
 end entity;
 
@@ -211,9 +215,9 @@ architecture beh of lift_controller is
 
 signal zero: std_logic_vector(34 downto 0):= "00000000000000000000000000000000000";
 
-signal task: std_logic_vector(3 downto 0); -- register that store whether to open door when lift reaches that floor
-signal dir: std_logic_vector(1 downto 0); -- up down idle
-signal lf: std_logic_vector(3 downto 0); -- floor of lift
+signal task: std_logic_vector(3 downto 0):= "0000"; -- register that store whether to open door when lift reaches that floor
+signal dir: std_logic_vector(1 downto 0):= "00"; -- idle up down
+signal lf: std_logic_vector(3 downto 0):= "0001"; -- floor of lift
 
 -- counter related
 signal eoc: std_logic_vector(34 downto 0);
@@ -222,6 +226,8 @@ signal t: std_logic_vector(1 downto 0); -- state of time
 signal s: std_logic_vector(1 downto 0); -- "00" = movement "01" = opening "10" = closing
 signal done: std_logic; -- lock
 signal initial: std_logic; -- relaese lock start new counting
+signal readytochangefloor: std_logic:='0';
+signal l_button_save: std_logic_vector(3 downto 0):="0000";
 
 signal l_dir_i: std_logic_vector(1 downto 0);
 
@@ -235,6 +241,8 @@ eoc <= "10010101000000101111100100000000000" when t = "11" else -- 2 s
 process(clk)
 begin
 if rising_edge(clk) then
+
+    t_done <= "0000";
     
     -- counter
     if (initial = '0') then
@@ -258,8 +266,10 @@ if rising_edge(clk) then
         if ((l_button(i) = '1') and not (lf(i) = l_button(i))) then
             if ((lf(3 downto i)<l_button(3 downto i)) and (l_dir_i="01")) then
                 task(i) <=  '1';
+                l_button_save(i) <= '1';
             elsif ((lf(i downto 0)>l_button(i downto 0)) and (l_dir_i="10")) then
                 task(i) <=  '1';
+                l_button_save(i) <= '1';
             end if;
         end if;
     end loop;
@@ -275,23 +285,59 @@ if rising_edge(clk) then
     
     -- sequence of movemement, opening, closing
     for i in 0 to 3 loop
-        if ((task(i) = lf(i)) and (lf(i) = '1')) then
+        if ((task(i) = '1') and (lf(i) = '1')) then -- have a task at this floor
             if (done='1') then
-                if (s="00") then
+                if (readytochangefloor='1') then
                     if (l_dir_i="01") then
                         lf <= lf(2 downto 0) + "0";
                     elsif (l_dir_i="10") then
-                        lf <= lf(3 downto 1) + "1";
+                        lf <= lf(3 downto 1) + "0";
                     end if;
-                    s <= "01";
-                    t <= "10";
-                elsif (s="01") then
-                    s <= "10";
-                    t <= "10";
-                elsif (s="10") then
-                    s <= "00";
-                    t <= "11";
+                    t_done(i) <= '1';
+                    l_button_save(i) <= '0';
+                    task(i) <= '0';
+                    readytochangefloor<='0';
+                else
+                    if (s="00") then
+                        initial <= '0';
+                        s <= "01";
+                        t <= "10";
+                    elsif (s="01") then
+                        if not(l_dir_i="00") then
+                            initial <= '0';
+                            s <= "10";
+                            t <= "10";
+                        else
+                            initial <= '0';
+                            s <= "01";
+                            t <= "10";
+                        end if;
+                    elsif (s="10") then
+                        if not(l_dir_i="00") then
+                            initial <= '0';
+                            s <= "00";
+                            t <= "11";
+                            readytochangefloor <= '1';
+                        else
+                            initial <= '0';
+                            s <= "01";
+                            t <= "10";
+                        end if;
+                    end if;
                 end if;
+            end if;
+            -- dont have to open at a given floor then
+        elsif ((task(i) = '0') and (lf(i) = '1')) then
+            if (not (l_dir_i="00")) then
+                if (l_dir_i="01") then
+                    lf <= lf(2 downto 0) + "0";
+                elsif (l_dir_i="10") then
+                    lf <= "0" + lf(3 downto 1);
+                end if;
+            else
+                initial <= '0';
+                s <= "01";
+                t <= "10";
             end if;
         end if;
     end loop;
@@ -311,10 +357,28 @@ if rising_edge(clk) then
         end if;
     end if;
     
+    if (reset='1') then
+        lf <= "0001";
+        s <= "01";
+        l_dir <= "00";
+    end if;
+    
 end if;
 end process;
 
 l_floor <= lf;
+l_dir <= l_dir_i;
+
+l_floor_ssd <= "00" when lf = "0001" else
+             "01" when lf = "0010" else
+             "10" when lf = "0100" else
+             "11" when lf = "1000";
+
+-- 0=goingup  1=goingdown  2=dooropen  3=doorclose             
+l_state_ssd <= "00" when ((s = "00") and (l_dir_i = "01")) else
+                "01" when ((s = "00") and (l_dir_i = "10")) else
+                "10" when s = "01" else
+                "11" when s = "10";
 
 end architecture;
 
@@ -328,7 +392,7 @@ entity lab8_ssd is
 port (
     lift1floor: in std_logic_vector(1 downto 0);
     lift2floor: in std_logic_vector(1 downto 0);
-    lift1state: in std_logic_vector(2 downto 0); -- 0=goingup  1=goingdown  2=idle  3=dooropen  4=doorclose
+    lift1state: in std_logic_vector(2 downto 0); -- 0=goingup  1=goingdown  2=dooropen  3=doorclose
     lift2state: in std_logic_vector(2 downto 0);
     clk: in std_logic;
     anode: out std_logic_vector (3 downto 0);
