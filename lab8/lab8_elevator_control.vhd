@@ -1,5 +1,6 @@
 -- task_buttons, task_up, task_down
 -- corresponding in out and registers
+-- come up with some strat to show that request or button is handled
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
