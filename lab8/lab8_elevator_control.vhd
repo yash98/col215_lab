@@ -201,7 +201,6 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity lift_controller is
 port (
-    rest: in std_logic;
     clk: in std_logic;
     door_open: in std_logic;
     door_close: in std_logic;
@@ -213,7 +212,7 @@ port (
     l_dir: out std_logic_vector(1 downto 0);
     l_button_ind: out std_logic_vector(3 downto 0);
     
-    l_state_ssd: out std_logic_vector(2 downto 0);
+    l_state_ssd: out std_logic_vector(1 downto 0);
     l_floor_ssd: out std_logic_vector(1 downto 0)
 );
 end entity;
@@ -399,8 +398,8 @@ entity lab8_ssd is
 port (
     lift1floor: in std_logic_vector(1 downto 0);
     lift2floor: in std_logic_vector(1 downto 0);
-    lift1state: in std_logic_vector(2 downto 0); -- 0=goingup  1=goingdown  2=dooropen  3=doorclose
-    lift2state: in std_logic_vector(2 downto 0);
+    lift1state: in std_logic_vector(1 downto 0); -- 0=goingup  1=goingdown  2=dooropen  3=doorclose
+    lift2state: in std_logic_vector(1 downto 0);
     clk: in std_logic;
     anode: out std_logic_vector (3 downto 0);
     cathode: out std_logic_vector (6 downto 0)
@@ -492,4 +491,158 @@ begin
             
             end if;
      end process;
-end architecture;        
+end architecture;  
+
+--------------------------------------------------------------------------------------------------------
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity lab8_elevator_control is
+port (
+    up_request: in std_logic_vector(3 downto 0);
+    down_request: in std_logic_vector(3 downto 0);
+    up_request_indicator: out std_logic_vector(3 downto 0);
+    down_request_indicator: out std_logic_vector(3 downto 0);
+    reset: in std_logic;
+    anode: out std_logic_vector (3 downto 0);
+    cathode: out std_logic_vector (6 downto 0);
+    door_open: in std_logic_vector(1 downto 0);
+    door_closed: in std_logic_vector(1 downto 0);
+    clk: in std_logic;
+    lift1_floor: in std_logic_vector(3 downto 0);
+    lift2_floor: in std_logic_vector(3 downto 0);
+    lift1_floor_indicator: out std_logic_vector(3 downto 0);
+    lift2_floor_indicator: out std_logic_vector(3 downto 0);
+    sim_mode: in std_logic
+    );
+end entity;
+
+architecture beh of lab8_elevator_control is
+
+signal l1f: std_logic_vector(1 downto 0);
+signal l2f: std_logic_vector(1 downto 0);
+signal l1s: std_logic_vector(1 downto 0);
+signal l2s: std_logic_vector(1 downto 0);
+
+signal l1flcrh: std_logic_vector(3 downto 0);
+signal l2flcrh: std_logic_vector(3 downto 0);
+
+signal l1dir: std_logic_vector(1 downto 0);
+signal l2dir: std_logic_vector(1 downto 0);
+
+signal l1t: std_logic_vector(3 downto 0);
+signal l2t: std_logic_vector(3 downto 0);
+signal l1td: std_logic_vector(3 downto 0);
+signal l2td: std_logic_vector(3 downto 0);
+
+component request_handler is
+port (
+    clk: in std_logic;
+    up_req: in std_logic_vector(3 downto 0);
+    down_req: in std_logic_vector(3 downto 0);
+    reset: in std_logic;
+    l_dir1: in std_logic_vector(1 downto 0);
+    l_dir2: in std_logic_vector(1 downto 0);
+    l_floor1: in std_logic_vector(3 downto 0);
+    l_floor2: in std_logic_vector(3 downto 0);
+    t_done1: in std_logic_vector(3 downto 0);
+    t_done2: in std_logic_vector(3 downto 0);
+    t_out1: out std_logic_vector(3 downto 0);
+    t_out2: out std_logic_vector(3 downto 0);
+    up_req_ind: out std_logic_vector(3 downto 0);
+    down_req_ind: out std_logic_vector(3 downto 0)
+);
+end component;
+
+component lift_controller is
+port (
+    clk: in std_logic;
+    door_open: in std_logic;
+    door_close: in std_logic;
+    reset: in std_logic;
+    l_button: in std_logic_vector(3 downto 0);
+    t_in: in std_logic_vector(3 downto 0);
+    l_floor: out std_logic_vector(3 downto 0);
+    t_done: out std_logic_vector(3 downto 0);
+    l_dir: out std_logic_vector(1 downto 0);
+    l_button_ind: out std_logic_vector(3 downto 0);
+    
+    l_state_ssd: out std_logic_vector(1 downto 0);
+    l_floor_ssd: out std_logic_vector(1 downto 0)
+);
+end component;
+
+component lab8_ssd is
+port (
+    lift1floor: in std_logic_vector(1 downto 0);
+    lift2floor: in std_logic_vector(1 downto 0);
+    lift1state: in std_logic_vector(1 downto 0); -- 0=goingup  1=goingdown  2=dooropen  3=doorclose
+    lift2state: in std_logic_vector(1 downto 0);
+    clk: in std_logic;
+    anode: out std_logic_vector (3 downto 0);
+    cathode: out std_logic_vector (6 downto 0)
+    );
+end component;
+
+begin
+    req_handler: request_handler port map(
+        clk => clk,
+        up_req => up_request,
+        down_req => down_request,
+        reset => reset,
+        l_dir1 => l1dir,
+        l_dir2 => l2dir,
+        l_floor1 => l1flcrh,
+        l_floor2 => l2flcrh,
+        t_done1 => l1td,
+        t_done2 => l2td,
+        t_out1 => l1t,
+        t_out2 => l2t,
+        up_req_ind => up_request_indicator,
+        down_req_ind => down_request_indicator
+    );
+    
+    lift1_controller: lift_controller port map(
+        clk => clk,
+        door_open => door_open(0),
+        door_close => door_closed(0),
+        reset => reset,
+        l_button => lift1_floor,
+        t_in => l1t,
+        l_floor => l1flcrh,
+        t_done => l1td,
+        l_dir => l1dir,
+        l_button_ind => lift1_floor_indicator,
+        
+        l_state_ssd => l1s,
+        l_floor_ssd => l1f
+    );
+    
+    lift2_controller: lift_controller port map(
+        clk => clk,
+        door_open => door_open(1),
+        door_close => door_closed(1),
+        reset => reset,
+        l_button => lift2_floor,
+        t_in => l2t,
+        l_floor => l2flcrh,
+        t_done => l2td,
+        l_dir => l2dir,
+        l_button_ind => lift2_floor_indicator,
+        
+        l_state_ssd => l2s,
+        l_floor_ssd => l2f
+        );
+        
+    status_display_block: lab8_ssd port map(
+        lift1floor => l1f,
+        lift2floor => l2f,
+        lift1state => l1s,
+        lift2state => l2s,
+        clk => clk,
+        anode => anode,
+        cathode => cathode
+    );
+end architecture;
