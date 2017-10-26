@@ -143,7 +143,7 @@ begin
             if (l_floor1(i) = '1') then
                 if ((l_floor1(3 downto i) <= up_req(3 downto i)) and (l_dir1 = "01")) then
                     t_out1(3 downto i) <= up_req(3 downto i);
-                    for j in 0 to 3-i loop
+                    for j in 0 toi loop
                         if (up_req(3-i+j)='1') then
                             p_up(3-i+j) <= '0';
                         end if;
@@ -160,7 +160,7 @@ begin
             elsif (l_floor2(i) = '1') then
                 if ((l_floor2(3 downto i) <= up_req(3 downto i)) and (l_dir2 = "01")) then
                     t_out2(3 downto i) <= up_req(3 downto i);
-                    for j in 0 to 3-i loop
+                    for j in 0 to i loop
                         if (up_req(3-i+j)='1') then
                             p_up(3-i+j) <= '0';
                         end if;
