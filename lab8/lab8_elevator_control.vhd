@@ -374,6 +374,7 @@ if rising_edge(clk) then
         lf <= "0001";
         s <= "01";
         l_dir <= "00";
+        l_dir <= "00";
     end if;
     
 end if;
