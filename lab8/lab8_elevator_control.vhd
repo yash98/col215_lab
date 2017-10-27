@@ -37,6 +37,8 @@ signal p_down: std_logic_vector(3 downto 0);
 
 signal zero: std_logic_vector(3 downto 0):= "0000";
 
+variable idlesent: std_logic;
+
 
 begin
 process(clk)
@@ -49,6 +51,7 @@ begin
         -- r_ and p_ updating
         
         for i in 0 to 3 loop
+            --loading values to register from switch (req up and down)
             if (up_req(i)='1' and up_req(3)='0') then
                 r_up(i) <= '1';
                 p_up(i) <= '1';
@@ -58,9 +61,11 @@ begin
                 p_down(i) <= '1';
             end if;
             
+            -- REQUEST FINISHED
             -- delete done requests from r_
             -- deletes all kind of done external requests
             if ((t_done1(i)='1') and (l_dir1="01")) then
+                -- if done and was sent from 
                 if (p_up(i)='0') then
                     -- up up handled
                     r_up(i) <= '0';
@@ -69,6 +74,7 @@ begin
                     -- up down handled
                     r_down(i) <= '0';
                 end if;
+
             elsif ((t_done1(i)='1') and (l_dir1="10")) then
                 if (p_down(i)='0') then
                     r_down(i) <= '0';
@@ -77,6 +83,7 @@ begin
                     r_up(i) <= '0';
                 end if;
             end if;
+
             if ((t_done2(i)='1') and (l_dir2="01")) then
                 if (p_up(i)='0') then
                     r_up(i) <= '0';
@@ -85,6 +92,7 @@ begin
                     r_down(i) <= '0';
                 end if;
             end if;
+
             if ((t_done2(i)='1') and (l_dir2="10")) then
                if (p_down(i)='0') then
                     r_down(i) <= '0';
@@ -93,30 +101,39 @@ begin
                     r_up(i) <= '0';
                 end if;
             end if;
+
         end loop;
+        
         
         -- idle state task assign
         if (l_dir1="00") then
+
             for i in 0 to 3 loop
-                if (p_up(3-i) = '1') and (((l_floor1(3 downto 3-i) <= p_up(3 downto 3-i)))) then
+                
+                if (p_up(3-i) = '1') and (((l_floor1(3 downto 3-i) <= p_up(3 downto 3-i)))) then -- uprequp
                     t_out1(3-i) <= '1';
                     p_up(3-i) <= '0';
+                    idlesent:='1';
                     exit;
-                elsif ((p_down(3-i) = '1') and ((l_floor1(3 downto 3-i) <= p_down(3 downto 3-i)))) then
+                elsif ((p_down(3-i) = '1') and ((l_floor1(3 downto 3-i) <= p_down(3 downto 3-i)))) then -- upreqdown
                     t_out1(3-i) <= '1';
                     p_down(3-i) <= '0';
+                    idlesent:='1';
                     exit;
-                elsif ((p_up(3-i) = '1') and (l_floor1(3 downto 3-i) >= p_up(3 downto 3-i))) then
+                elsif ((p_up(3-i) = '1') and (l_floor1(3 downto 3-i) >= p_up(3 downto 3-i))) then -- down requp
                     t_out1(3-i) <= '1';
                     p_up(3-i) <= '0';
+                    idlesent:='1';
                     exit;
-                elsif ((p_down(3-i) = '1') and (l_floor1(3 downto i) >= p_down(3 downto i))) then
+                elsif ((p_down(3-i) = '1') and (l_floor1(3 downto i) >= p_down(3 downto i))) then -- downreqdown
                     t_out1(3-i) <= '1';
                     p_down(3-i) <= '0';
+                    idlesent:='1';
                     exit;
                 end if;
             end loop;
-        elsif (l_dir2="00") then
+
+        elsif (l_dir2="00" and idlesent='1') then
             for i in 0 to 3 loop
                 if ((p_up(3-i) = '1') and (l_floor2(3 downto 3-i) <= p_up(3 downto 3-i))) then
                     t_out2(3-i) <= '1';
@@ -160,7 +177,7 @@ begin
             elsif (l_floor2(i) = '1') then
                 if ((l_floor2(3 downto i) <= up_req(3 downto i)) and (l_dir2 = "01")) then
                     t_out2(3 downto i) <= up_req(3 downto i);
-                    for j in 0 to i loop
+                    for j in 0 to  ==i loop
                         if (up_req(3-i+j)='1') then
                             p_up(3-i+j) <= '0';
                         end if;
@@ -177,6 +194,9 @@ begin
         end loop;
     end if;
     
+    -- reset for next time
+    idlesent := 0;
+
     -- reset
     if (reset = '1') then
         r_up <= "0000";
