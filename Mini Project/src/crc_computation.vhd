@@ -91,8 +91,12 @@ signal r_inp_addr: std_logic_vector(3 downto 0):="0000"; -- read crc addr mainta
 signal start: std_logic:='0';
 signal wait_read: std_logic;
 
+signal one: std_logic_vector(15 downto 0):="1111111111111111";
+signal zero: std_logic_vector(15 downto 0):="0000000000000000";
+
 signal c: std_logic_vector(1 downto 0):="00";
-signal n: std_logic_vector(3 downto 0):="0000";
+signal n: std_logic_vector(3 downto 0):="00000";
+signal shift: std_logic;
 
 begin
 
@@ -128,14 +132,29 @@ begin
                 c <= c+"01";
             else
                 start <= '1';
+                shift <= '0';
+                n <= "0000";
                 c <= "00";
                 wait_read <= '0';
-                int_inp <= inp_bram_data;
+                int_inp <= one & inp_bram_data & zero;
             end if;
         end if;
         
         if (start='1') then
-            
+            if (shift='1') then
+                int_inp <= int_inp(46 downto 0) & "0";
+                shift <= '0';
+            else
+                if (int_inp(47)='1') then
+                    int_inp <= (int_inp(47 downto 32) xor poly) & int_inp(31 downto 0);
+                end if;
+                shift <= '1';
+                n <= n + "0001";
+                if (n="10000") then
+                    start <= '0';
+                    crc <= int_inp(47 to 32);
+                end if;
+            end if;
         end if;
         
     end if;
