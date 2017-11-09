@@ -82,21 +82,23 @@ end crc;
 
 architecture beh of crc is
 
-signal int_inp: std_logic_vector(47 downto 0);
-signal crc: std_logic_vector(15 downto 0);
+signal int_inp: std_logic_vector(47 downto 0); -- local storage for inp
+signal crc: std_logic_vector(15 downto 0); -- final value calculated
 signal poly: std_logic_vector(15 downto 0):="0001000000100001"; -- 1021
+
 signal w_inp_addr: std_logic_vector(3 downto 0):="0000"; -- write to inpit addr maintainer
 signal w_crc_addr: std_logic_vector(3 downto 0):="0000"; -- write crc addr maintainer
 signal r_inp_addr: std_logic_vector(3 downto 0):="0000"; -- read crc addr maintainer
-signal start: std_logic:='0';
-signal wait_read: std_logic;
+
+signal start: std_logic:='0'; -- start crc comp
+signal wait_read: std_logic:='0'; -- waiting indicator for reading delay
 
 signal one: std_logic_vector(15 downto 0):="1111111111111111";
 signal zero: std_logic_vector(15 downto 0):="0000000000000000";
 
-signal c: std_logic_vector(1 downto 0):="00";
-signal n: std_logic_vector(3 downto 0):="00000";
-signal shift: std_logic;
+signal c: std_logic_vector(1 downto 0):="00"; -- reading count
+signal n: std_logic_vector(3 downto 0):="00000"; -- shifting cont(during crc comp)
+signal shift: std_logic:='0'; -- to shift indicator
 
 begin
 
@@ -105,12 +107,16 @@ begin
     if rising_edge(clk) then
         we_inp <= '0';
         we_crc <= '0';
+        
+        -- load inputs on ech press
         if (pb1='1') then
            addr_inp <= w_inp_addr;
            wr_inp <= data_inp;
            we_inp <= '1';
            w_inp_addr <= w_inp_addr+"0001";
         end if;
+        
+        -- reset 
         if (pb2='1') then
             w_inp_addr <= "0000";
             we_inp <= '0';
@@ -120,13 +126,17 @@ begin
             rst_crc <= '0';
             -- check int signal settings
         end if;
+        
+        -- start crc comp of next addr
         if (pb3='1' and start='0') then
             we_inp <= '0';
             addr_inp <= r_inp_addr;
             wait_read<='1';
             r_inp_addr <= r_inp_addr+"0001";
+            done <= '0';
         end if;
-            
+        
+        -- read into local memory
         if (wait_read='1') then
             if (c<"10") then
                 c <= c+"01";
@@ -140,6 +150,7 @@ begin
             end if;
         end if;
         
+        -- start calculation
         if (start='1') then
             if (shift='1') then
                 int_inp <= int_inp(46 downto 0) & "0";
@@ -150,9 +161,11 @@ begin
                 end if;
                 shift <= '1';
                 n <= n + "0001";
+                -- 33rd xor has no shift sart to 0 crc displayed
                 if (n="10000") then
                     start <= '0';
                     crc <= int_inp(47 to 32);
+                    done <= '1';
                 end if;
             end if;
         end if;
