@@ -83,7 +83,7 @@ end crc;
 architecture beh of crc is
 
 signal int_inp: std_logic_vector(47 downto 0); -- local storage for inp
-signal crc: std_logic_vector(15 downto 0); -- final value calculated
+signal crc: std_logic_vector(15 downto 0):="1111111111111111"; -- final value calculated
 signal poly: std_logic_vector(15 downto 0):="0001000000100001"; -- 1021
 
 signal w_inp_addr: std_logic_vector(3 downto 0):="0000"; -- write to inpit addr maintainer
@@ -107,6 +107,8 @@ begin
     if rising_edge(clk) then
         we_inp <= '0';
         we_crc <= '0';
+        rst_inp <= '0';
+        rst_crc <= '0';
         
         -- load inputs on ech press
         if (pb1='1') then
@@ -118,17 +120,29 @@ begin
         
         -- reset 
         if (pb2='1') then
+        
             w_inp_addr <= "0000";
             we_inp <= '0';
-            rst_inp <= '0';
+            rst_inp <= '1';
+            
             w_crc_addr <= "0000";
             we_crc <= '0';
-            rst_crc <= '0';
+            rst_crc <= '1';
+            
+            r_inp_addr <= "0000";
+            
+            done <= '0';
+            wait_read <= '0';
+            start <= '0';
+            shift <= '0';
+            c <= "00";
+            n <= "0000";
+            crc <= "1111111111111111";
             -- check int signal settings
         end if;
         
         -- start crc comp of next addr
-        if (pb3='1' and start='0') then
+        if (pb3='1' and start='0' and wait_read='0') then
             we_inp <= '0';
             addr_inp <= r_inp_addr;
             wait_read<='1';
