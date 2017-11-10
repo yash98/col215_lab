@@ -1,8 +1,8 @@
 # Clock signal
-Bank = 34, Pin name = ,	Sch name = CLK100MHZ
+Bank = 34, Pin name = ,	Sch name = CLK1KHZ
 	set_property PACKAGE_PIN W5 [get_ports clk]
 	set_property IOSTANDARD LVCMOS33 [get_ports clk]
-	create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports clk]
+	create_clock -period 10 -name sys_clk_pin -waveform {0 5} -add [get_ports clk]
 
 # Switches
   set_property PACKAGE_PIN V17 [get_ports switches[0]]
@@ -106,17 +106,17 @@ Bank = 34, Pin name = ,	Sch name = CLK100MHZ
 	set_property PACKAGE_PIN U3 [get_ports w_addr_crc[3]]
 	set_property IOSTANDARD LVCMOS33 [get_ports w_addr_crc[3]]
 
-	set_property PACKAGE_PIN P3 [get_ports done]
-	set_property IOSTANDARD LVCMOS33 [get_ports done]
+	set_property PACKAGE_PIN P3 [get_ports reading]
+	set_property IOSTANDARD LVCMOS33 [get_ports reading]
 
-	set_property PACKAGE_PIN N3 [get_ports rsting]
-	set_property IOSTANDARD LVCMOS33 [get_ports rsting]
-
-	set_property PACKAGE_PIN P1 [get_ports started]
+	set_property PACKAGE_PIN N3 [get_ports started]
 	set_property IOSTANDARD LVCMOS33 [get_ports started]
 
-	set_property PACKAGE_PIN L1 [get_ports reading]
-	set_property IOSTANDARD LVCMOS33 [get_ports reading]
+	set_property PACKAGE_PIN P1 [get_ports rsting]
+	set_property IOSTANDARD LVCMOS33 [get_ports rsting]
+
+	set_property PACKAGE_PIN L1 [get_ports done]
+	set_property IOSTANDARD LVCMOS33 [get_ports done]
 
 # Cathodes
 	set_property PACKAGE_PIN W7 [get_ports cathode[0]]

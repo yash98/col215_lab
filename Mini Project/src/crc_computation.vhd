@@ -1324,7 +1324,7 @@ signal one: std_logic_vector(15 downto 0):="1111111111111111";
 signal zero: std_logic_vector(15 downto 0):="0000000000000000";
 
 signal c: std_logic_vector(1 downto 0):="00"; -- reading count
-signal n: std_logic_vector(4 downto 0):="00000"; -- shifting cont(during crc comp)
+signal n: std_logic_vector(5 downto 0):="000000"; -- shifting cont(during crc comp)
 signal shift: std_logic:='0'; -- to shift indicator
 signal rsting: std_logic:='0'; -- indicator of reseting
 signal rst_c: std_logic_vector(3 downto 0):="0000"; -- count of rsting
@@ -1352,7 +1352,7 @@ begin
             end if;
         else
             -- load inputs on ech press
-            if (pb1='1' and wait_read='0') then
+            if (pb1='1' and wait_read='0' and start='0') then
                addr_inp <= w_inp_addr;
                wr_inp <= data_inp;
                we_inp <= "1";
@@ -1375,7 +1375,7 @@ begin
                 start <= '0';
                 shift <= '0';
                 c <= "00";
-                n <= "00000";
+                n <= "000000";
                 crc <= "1111111111111111";
                 
                 rst_c <= "0000";
@@ -1387,22 +1387,23 @@ begin
             if ((pb3='1' or pb4='1' or pb5='1') and start='0' and wait_read='0') then
             
                 if (pb3='1') then
-                addr_inp <= r_inp_addr;
-                r_inp_addr <= r_inp_addr+"0001";
-                calc_pb <= "00";
+                    addr_inp <= r_inp_addr;
+                    r_inp_addr <= r_inp_addr+"0001";
+                    calc_pb <= "00";
                 
                 elsif (pb4='1') then
-                addr_inp <= "0100"; -- 11 index is 12 th word
-                calc_pb <= "01";
+                    addr_inp <= "0100"; -- 11 index is 12 th word
+                    calc_pb <= "01";
                 
                 elsif (pb5='1') then
-                addr_inp <= "0010"; -- 2 index is 3 rd word
-                calc_pb <= "10";
+                    addr_inp <= "0010"; -- 2 index is 3 rd word
+                    calc_pb <= "10";
                 
                 end if;
                 
                 we_inp <= "0";
                 wait_read<='1';
+                c<="00";
                 done <= '0';
             end if;
             
@@ -1413,7 +1414,7 @@ begin
                 else
                     start <= '1';
                     shift <= '0';
-                    n <= "00000";
+                    n <= "000000";
                     c <= "00";
                     wait_read <= '0';
                     
@@ -1421,10 +1422,10 @@ begin
                         int_inp <= one & inp_bram_data & zero;
                         
                     elsif (calc_pb="01") then
-                        int_inp <= one & inp_bram_data(15 downto 10) & not inp_bram_data(9) & inp_bram_data(8 downto 0) & zero;
+                        int_inp <= one & inp_bram_data(15 downto 10) & not inp_bram_data(9 downto 9) & inp_bram_data(8 downto 0) & zero;
                         -- modify 16-7=9 index 1st bit index 15
                     elsif (calc_pb="10") then
-                        int_inp <= one & inp_bram_data(15 downto 5) & inp_bram_data(4) & inp_bram_data(3 downto 0) & zero;
+                        int_inp <= one & inp_bram_data(15 downto 5) & inp_bram_data(4 downto 4) & inp_bram_data(3 downto 0) & zero;
                         -- modify 16-12=4 index 1st bit index 15
                     end if;
                 end if;
@@ -1440,9 +1441,9 @@ begin
                         int_inp <= (int_inp(47 downto 32) xor poly) & int_inp(31 downto 0);
                     end if;
                     shift <= '1';
-                    n <= n + "00001";
+                    n <= n + "000001";
                     -- 33rd xor has no shift sart to 0 crc displayed
-                    if (n="10000") then
+                    if (n="100000") then
                         start <= '0';
                         crc <= int_inp(47 downto 32);
                         done <= '1';
