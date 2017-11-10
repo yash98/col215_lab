@@ -1224,6 +1224,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
+
 entity BRAM_wrapper is
   port (
     BRAM_PORTA_0_addr : in STD_LOGIC_VECTOR ( 3 downto 0 );
@@ -1262,13 +1263,12 @@ end STRUCTURE;
 ---------------------------------------------------------------------
 -- crc computation
 
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-entity crc_computation is
+entity crc is
 port (
         clk: in std_logic;
         pb1: in std_logic; --load
@@ -1291,22 +1291,21 @@ port (
         
 
         done: out std_logic;
+        reseting: out std_logic;
+        started: out std_logic;
+        reading: out std_logic;
         
         -- write enable
         we_inp: out std_logic;
         we_crc: out std_logic;
         
-        -- reset
-        rst_inp: out std_logic;
-        rst_crc: out std_logic;
-        
         --addr of brams
         addr_inp: out std_logic_vector(3 downto 0);
         addr_crc: out std_logic_vector(3 downto 0)
     );
-end crc_computation;
+end crc;
 
-architecture beh of crc_computation is
+architecture beh of crc is
 
 signal int_inp: std_logic_vector(47 downto 0); -- local storage for inp
 signal crc: std_logic_vector(15 downto 0):="1111111111111111"; -- final value calculated
@@ -1459,5 +1458,182 @@ begin
     end if;
 end process;
 
+reseting <= rsting;
+started <= start;
+reading <= wait_read;
+crc_disp <= crc;
+
+
+end architecture;
+
+-----------------------------------------
+-- all combined crc_computation
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity crc_computation is
+    port (
+            switches: in std_logic_vector(15 downto 0);
+            pb: in std_logic_vector(4 downto 0);
+            clk: in std_logic;
+            w_addr_inp: out std_logic_vector(3 downto 0);
+            r_addr_inp: out std_logic_vector(3 downto 0);
+            w_addr_crc: out std_logic_vector(3 downto 0);
+            done: out std_logic;
+            rsting: out std_logic;
+            started: out std_logic;
+            reading: out std_logic;
+            
+            anode: out std_logic_vector(3 downto 0);
+            cathode: out std_logic_vector(6 downto 0)
+    );
+end crc_computation;
+
+architecture beh of crc_computation is
+
+
+
+component lab4_seven_segment_display is
+   port ( b          : in    std_logic_vector (15 downto 0); 
+          clk        : in    std_logic; 
+          pushbutton : in    std_logic; 
+          anode      : out   std_logic_vector (3 downto 0); 
+          cathode    : out   std_logic_vector (6 downto 0));
+end component;
+
+
+component BRAM_wrapper is
+  port (
+    BRAM_PORTA_0_addr : in STD_LOGIC_VECTOR ( 3 downto 0 );
+    BRAM_PORTA_0_clk : in STD_LOGIC;
+    BRAM_PORTA_0_din : in STD_LOGIC_VECTOR ( 15 downto 0 );
+    BRAM_PORTA_0_dout : out STD_LOGIC_VECTOR ( 15 downto 0 );
+    BRAM_PORTA_0_en : in STD_LOGIC;
+    BRAM_PORTA_0_we : in STD_LOGIC_VECTOR ( 0 to 0 )
+  );
+end component;
+
+component crc is
+port (
+        clk: in std_logic;
+        pb1: in std_logic; --load
+        pb2: in std_logic; --reset
+        pb3: in std_logic; --start
+        pb4: in std_logic; --5th word 7th bit
+        pb5: in std_logic; --3rd word 12th bit
+        
+        -- dout of brams
+        inp_bram_data: in std_logic_vector(15 downto 0);
+        crc_bram_data: in std_logic_vector(15 downto 0);
+        
+        -- misc
+        data_inp: in std_logic_vector(15 downto 0); -- input from switches
+        crc_disp: out std_logic_vector(15 downto 0); -- display calculated crc on ssd from bram 2
+        
+        --din of bram / write this in brams
+        wr_crc:out std_logic_vector(15 downto 0);
+        wr_inp: out std_logic_vector(15 downto 0);
+        
+
+        done: out std_logic;
+        reseting: out std_logic;
+        started: out std_logic;
+        reading: out std_logic;
+        
+        -- write enable
+        we_inp: out std_logic_vector(0 downto 0);
+        we_crc: out std_logic_vector(0 downto 0);
+        
+        --addr of brams
+        addr_inp: out std_logic_vector(3 downto 0);
+        addr_crc: out std_logic_vector(3 downto 0)
+    );
+end component;
+
+
+signal one: std_logic:='1';
+signal zero: std_logic:='0';
+
+signal addr_inp_i: std_logic_vector(3 downto 0);
+signal wr_inp_i: std_logic_vector(15 downto 0);
+signal inp_bram_data_i: std_logic_vector(15 downto 0);
+signal we_inp_i: std_logic_vector(0 downto 0);
+
+signal addr_crc_i: std_logic_vector(3 downto 0);
+signal wr_crc_i: std_logic_vector(15 downto 0);
+signal crc_bram_data_i: std_logic_vector(15 downto 0);
+signal we_crc_i: std_logic_vector(0 downto 0);
+
+signal disp: std_logic_vector(15 downto 0);
+
+
+begin
+
+  bram_inp: BRAM_wrapper
+      port map (
+        BRAM_PORTA_0_addr  => addr_inp_i,
+        BRAM_PORTA_0_clk => clk,
+        BRAM_PORTA_0_din => wr_inp_i,
+        BRAM_PORTA_0_dout => inp_bram_data_i,
+        BRAM_PORTA_0_en => one,
+        BRAM_PORTA_0_we => we_inp_i
+      );
+
+  bram_crc: BRAM_wrapper
+      port map (
+        BRAM_PORTA_0_addr  => addr_crc_i,
+        BRAM_PORTA_0_clk => clk,
+        BRAM_PORTA_0_din => wr_crc_i,
+        BRAM_PORTA_0_dout => crc_bram_data_i,
+        BRAM_PORTA_0_en => one,
+        BRAM_PORTA_0_we => we_crc_i
+      );
+
+    crc_comp: crc
+        port map (
+            clk=> clk,
+            pb1=> pb(0), --load
+            pb2=> pb(1), --reset
+            pb3=> pb(2), --start
+            pb4=> pb(3), --5th word 7th bit
+            pb5=> pb(4), --3rd word 12th bit
+            
+            -- dout of brams
+            inp_bram_data=> inp_bram_data_i,
+            crc_bram_data=> crc_bram_data_i,
+            
+            -- misc
+            data_inp=> switches, -- input from switches
+            crc_disp=> disp, -- display calculated crc on ssd from bram 2
+            
+            --din of bram / write this in brams
+            wr_crc=> wr_crc_i,
+            wr_inp=> wr_inp_i,
+            
+    
+            done=> done,
+            reseting=> rsting,
+            started=> started,
+            reading=> reading,
+            
+            -- write enable
+            we_inp=> we_inp_i,
+            we_crc=> we_crc_i,
+            
+            --addr of brams
+            addr_inp=> addr_inp_i,
+            addr_crc=> addr_crc_i
+        );
+        
+    display: lab4_seven_segment_display
+        port map ( b  => disp, 
+                  clk  => clk,
+                  pushbutton => zero,
+                  anode  => anode,
+                  cathode => cathode
+                  );
 
 end architecture;
