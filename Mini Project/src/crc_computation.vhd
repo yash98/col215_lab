@@ -1296,8 +1296,8 @@ port (
         reading: out std_logic;
         
         -- write enable
-        we_inp: out std_logic;
-        we_crc: out std_logic;
+        we_inp: out std_logic_vector(0 downto 0);
+        we_crc: out std_logic_vector(0 downto 0);
         
         --addr of brams
         addr_inp: out std_logic_vector(3 downto 0);
@@ -1307,7 +1307,7 @@ end crc;
 
 architecture beh of crc is
 
-signal int_inp: std_logic_vector(47 downto 0); -- local storage for inp
+signal int_inp: std_logic_vector(47 downto 0):="000000000000000000000000000000000000000000000000"; -- local storage for inp
 signal crc: std_logic_vector(15 downto 0):="1111111111111111"; -- final value calculated
 signal poly: std_logic_vector(15 downto 0):="0001000000100001"; -- 1021
 
@@ -1322,7 +1322,7 @@ signal one: std_logic_vector(15 downto 0):="1111111111111111";
 signal zero: std_logic_vector(15 downto 0):="0000000000000000";
 
 signal c: std_logic_vector(1 downto 0):="00"; -- reading count
-signal n: std_logic_vector(3 downto 0):="00000"; -- shifting cont(during crc comp)
+signal n: std_logic_vector(4 downto 0):="00000"; -- shifting cont(during crc comp)
 signal shift: std_logic:='0'; -- to shift indicator
 signal rsting: std_logic:='0'; -- indicator of reseting
 signal rst_c: std_logic_vector(3 downto 0):="0000"; -- count of rsting
@@ -1334,17 +1334,17 @@ begin
 process(clk)
 begin
     if rising_edge(clk) then
-        we_inp <= '0';
-        we_crc <= '0';
+        we_inp <= "0";
+        we_crc <= "0";
         
         if (rsting='1') then
-                we_inp <= '1';
-                we_crc <= '1';
-                wr_crc <= "1111111111111111";
-                wr_inp <= "1111111111111111";
-                addr_inp <= c;
-                addr_crc <= c;
-                c <= c+"0001";
+            we_inp <= "1";
+            we_crc <= "1";
+            wr_crc <= "1111111111111111";
+            wr_inp <= "1111111111111111";
+            addr_inp <= rst_c;
+            addr_crc <= rst_c;
+            rst_c <= rst_c+"0001";
             if (rst_c="1111") then
                 rsting <= '0';
             end if;
@@ -1353,7 +1353,7 @@ begin
             if (pb1='1' and wait_read='0') then
                addr_inp <= w_inp_addr;
                wr_inp <= data_inp;
-               we_inp <= '1';
+               we_inp <= "1";
                w_inp_addr <= w_inp_addr+"0001";
             end if;
             
@@ -1361,12 +1361,10 @@ begin
             if (pb2='1') then
             
                 w_inp_addr <= "0000";
-                we_inp <= '0';
-                rst_inp <= '1';
+                we_inp <= "0";
                 
                 w_crc_addr <= "0000";
-                we_crc <= '0';
-                rst_crc <= '1';
+                we_crc <= "0";
                 
                 r_inp_addr <= "0000";
                 
@@ -1375,7 +1373,7 @@ begin
                 start <= '0';
                 shift <= '0';
                 c <= "00";
-                n <= "0000";
+                n <= "00000";
                 crc <= "1111111111111111";
                 
                 rst_c <= "0000";
@@ -1401,7 +1399,7 @@ begin
                 
                 end if;
                 
-                we_inp <= '0';
+                we_inp <= "0";
                 wait_read<='1';
                 done <= '0';
             end if;
@@ -1413,7 +1411,7 @@ begin
                 else
                     start <= '1';
                     shift <= '0';
-                    n <= "0000";
+                    n <= "00000";
                     c <= "00";
                     wait_read <= '0';
                     
@@ -1440,14 +1438,14 @@ begin
                         int_inp <= (int_inp(47 downto 32) xor poly) & int_inp(31 downto 0);
                     end if;
                     shift <= '1';
-                    n <= n + "0001";
+                    n <= n + "00001";
                     -- 33rd xor has no shift sart to 0 crc displayed
                     if (n="10000") then
                         start <= '0';
-                        crc <= int_inp(47 to 32);
+                        crc <= int_inp(47 downto 32);
                         done <= '1';
                         wr_crc <= crc;
-                        we_crc <= '1';
+                        we_crc <= "1";
                         addr_crc <= w_crc_addr;
                         w_crc_addr <= w_crc_addr + "0001";
                     end if;
@@ -1554,8 +1552,8 @@ port (
 end component;
 
 
-signal one: std_logic:='1';
-signal zero: std_logic:='0';
+signal one: std_logic_vector(0 downto 0):="1";
+signal zero: std_logic_vector(0 downto 0):="0";
 
 signal addr_inp_i: std_logic_vector(3 downto 0);
 signal wr_inp_i: std_logic_vector(15 downto 0);
@@ -1578,7 +1576,7 @@ begin
         BRAM_PORTA_0_clk => clk,
         BRAM_PORTA_0_din => wr_inp_i,
         BRAM_PORTA_0_dout => inp_bram_data_i,
-        BRAM_PORTA_0_en => one,
+        BRAM_PORTA_0_en => one(0),
         BRAM_PORTA_0_we => we_inp_i
       );
 
@@ -1588,7 +1586,7 @@ begin
         BRAM_PORTA_0_clk => clk,
         BRAM_PORTA_0_din => wr_crc_i,
         BRAM_PORTA_0_dout => crc_bram_data_i,
-        BRAM_PORTA_0_en => one,
+        BRAM_PORTA_0_en => one(0),
         BRAM_PORTA_0_we => we_crc_i
       );
 
@@ -1631,7 +1629,7 @@ begin
     display: lab4_seven_segment_display
         port map ( b  => disp, 
                   clk  => clk,
-                  pushbutton => zero,
+                  pushbutton => zero(0),
                   anode  => anode,
                   cathode => cathode
                   );
