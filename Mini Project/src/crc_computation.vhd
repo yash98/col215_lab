@@ -1224,42 +1224,39 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-
-entity BRAM_wrapper is
+entity bram_wrapper is
   port (
-    BRAM_PORTA_0_addr : in STD_LOGIC_VECTOR ( 3 downto 0 );
-    BRAM_PORTA_0_clk : in STD_LOGIC;
-    BRAM_PORTA_0_din : in STD_LOGIC_VECTOR ( 15 downto 0 );
-    BRAM_PORTA_0_dout : out STD_LOGIC_VECTOR ( 15 downto 0 );
-    BRAM_PORTA_0_en : in STD_LOGIC;
-    BRAM_PORTA_0_we : in STD_LOGIC_VECTOR ( 0 to 0 )
+    BRAM_PORTA_addr : in STD_LOGIC_VECTOR ( 3 downto 0 );
+    BRAM_PORTA_clk : in STD_LOGIC;
+    BRAM_PORTA_din : in STD_LOGIC_VECTOR ( 15 downto 0 );
+    BRAM_PORTA_dout : out STD_LOGIC_VECTOR ( 15 downto 0 );
+    BRAM_PORTA_en : in STD_LOGIC;
+    BRAM_PORTA_we : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
-end BRAM_wrapper;
+end bram_wrapper;
 
-architecture STRUCTURE of BRAM_wrapper is
-  component BRAM is
+architecture STRUCTURE of bram_wrapper is
+  component bram is
   port (
-    BRAM_PORTA_0_addr : in STD_LOGIC_VECTOR ( 3 downto 0 );
-    BRAM_PORTA_0_clk : in STD_LOGIC;
-    BRAM_PORTA_0_din : in STD_LOGIC_VECTOR ( 15 downto 0 );
-    BRAM_PORTA_0_dout : out STD_LOGIC_VECTOR ( 15 downto 0 );
-    BRAM_PORTA_0_en : in STD_LOGIC;
-    BRAM_PORTA_0_we : in STD_LOGIC_VECTOR ( 0 to 0 )
+    BRAM_PORTA_addr : in STD_LOGIC_VECTOR ( 3 downto 0 );
+    BRAM_PORTA_clk : in STD_LOGIC;
+    BRAM_PORTA_din : in STD_LOGIC_VECTOR ( 15 downto 0 );
+    BRAM_PORTA_dout : out STD_LOGIC_VECTOR ( 15 downto 0 );
+    BRAM_PORTA_en : in STD_LOGIC;
+    BRAM_PORTA_we : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
-  end component BRAM;
+  end component bram;
 begin
-BRAM_i: component BRAM
+bram_i: component bram
      port map (
-      BRAM_PORTA_0_addr(3 downto 0) => BRAM_PORTA_0_addr(3 downto 0),
-      BRAM_PORTA_0_clk => BRAM_PORTA_0_clk,
-      BRAM_PORTA_0_din(15 downto 0) => BRAM_PORTA_0_din(15 downto 0),
-      BRAM_PORTA_0_dout(15 downto 0) => BRAM_PORTA_0_dout(15 downto 0),
-      BRAM_PORTA_0_en => BRAM_PORTA_0_en,
-      BRAM_PORTA_0_we(0) => BRAM_PORTA_0_we(0)
+      BRAM_PORTA_addr(3 downto 0) => BRAM_PORTA_addr(3 downto 0),
+      BRAM_PORTA_clk => BRAM_PORTA_clk,
+      BRAM_PORTA_din(15 downto 0) => BRAM_PORTA_din(15 downto 0),
+      BRAM_PORTA_dout(15 downto 0) => BRAM_PORTA_dout(15 downto 0),
+      BRAM_PORTA_en => BRAM_PORTA_en,
+      BRAM_PORTA_we(0) => BRAM_PORTA_we(0)
     );
 end STRUCTURE;
-
-
 ---------------------------------------------------------------------
 -- crc computation
 
@@ -1301,7 +1298,12 @@ port (
         
         --addr of brams
         addr_inp: out std_logic_vector(3 downto 0);
-        addr_crc: out std_logic_vector(3 downto 0)
+        addr_crc: out std_logic_vector(3 downto 0);
+        
+        -- special show case
+        w_addr_inp_o: out std_logic_vector(3 downto 0);
+        r_addr_inp_o: out std_logic_vector(3 downto 0);
+        w_addr_crc_o: out std_logic_vector(3 downto 0)
     );
 end crc;
 
@@ -1462,6 +1464,10 @@ reading <= wait_read;
 crc_disp <= crc;
 
 
+w_addr_inp_o <= w_inp_addr;
+r_addr_inp_o <= r_inp_addr;
+w_addr_crc_o <= w_crc_addr;
+
 end architecture;
 
 -----------------------------------------
@@ -1503,14 +1509,14 @@ component lab4_seven_segment_display is
 end component;
 
 
-component BRAM_wrapper is
+component bram_wrapper is
   port (
-    BRAM_PORTA_0_addr : in STD_LOGIC_VECTOR ( 3 downto 0 );
-    BRAM_PORTA_0_clk : in STD_LOGIC;
-    BRAM_PORTA_0_din : in STD_LOGIC_VECTOR ( 15 downto 0 );
-    BRAM_PORTA_0_dout : out STD_LOGIC_VECTOR ( 15 downto 0 );
-    BRAM_PORTA_0_en : in STD_LOGIC;
-    BRAM_PORTA_0_we : in STD_LOGIC_VECTOR ( 0 to 0 )
+      BRAM_PORTA_addr : in STD_LOGIC_VECTOR ( 3 downto 0 );
+      BRAM_PORTA_clk : in STD_LOGIC;
+      BRAM_PORTA_din : in STD_LOGIC_VECTOR ( 15 downto 0 );
+      BRAM_PORTA_dout : out STD_LOGIC_VECTOR ( 15 downto 0 );
+      BRAM_PORTA_en : in STD_LOGIC;
+      BRAM_PORTA_we : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
 end component;
 
@@ -1547,7 +1553,12 @@ port (
         
         --addr of brams
         addr_inp: out std_logic_vector(3 downto 0);
-        addr_crc: out std_logic_vector(3 downto 0)
+        addr_crc: out std_logic_vector(3 downto 0);
+        
+        -- special show case
+        w_addr_inp_o: out std_logic_vector(3 downto 0);
+        r_addr_inp_o: out std_logic_vector(3 downto 0);
+        w_addr_crc_o: out std_logic_vector(3 downto 0)
     );
 end component;
 
@@ -1570,24 +1581,24 @@ signal disp: std_logic_vector(15 downto 0);
 
 begin
 
-  bram_inp: BRAM_wrapper
+  bram_inp: bram_wrapper
       port map (
-        BRAM_PORTA_0_addr  => addr_inp_i,
-        BRAM_PORTA_0_clk => clk,
-        BRAM_PORTA_0_din => wr_inp_i,
-        BRAM_PORTA_0_dout => inp_bram_data_i,
-        BRAM_PORTA_0_en => one(0),
-        BRAM_PORTA_0_we => we_inp_i
+        BRAM_PORTA_addr  => addr_inp_i,
+        BRAM_PORTA_clk => clk,
+        BRAM_PORTA_din => wr_inp_i,
+        BRAM_PORTA_dout => inp_bram_data_i,
+        BRAM_PORTA_en => one(0),
+        BRAM_PORTA_we => we_inp_i
       );
 
-  bram_crc: BRAM_wrapper
+  bram_crc: bram_wrapper
       port map (
-        BRAM_PORTA_0_addr  => addr_crc_i,
-        BRAM_PORTA_0_clk => clk,
-        BRAM_PORTA_0_din => wr_crc_i,
-        BRAM_PORTA_0_dout => crc_bram_data_i,
-        BRAM_PORTA_0_en => one(0),
-        BRAM_PORTA_0_we => we_crc_i
+        BRAM_PORTA_addr  => addr_crc_i,
+        BRAM_PORTA_clk => clk,
+        BRAM_PORTA_din => wr_crc_i,
+        BRAM_PORTA_dout => crc_bram_data_i,
+        BRAM_PORTA_en => one(0),
+        BRAM_PORTA_we => we_crc_i
       );
 
     crc_comp: crc
@@ -1623,7 +1634,12 @@ begin
             
             --addr of brams
             addr_inp=> addr_inp_i,
-            addr_crc=> addr_crc_i
+            addr_crc=> addr_crc_i,
+            
+            -- special show case
+            w_addr_inp_o => w_addr_inp,
+            r_addr_inp_o => r_addr_inp,
+            w_addr_crc_o => w_addr_crc
         );
         
     display: lab4_seven_segment_display

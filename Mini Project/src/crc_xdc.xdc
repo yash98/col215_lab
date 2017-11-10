@@ -109,8 +109,8 @@ Bank = 34, Pin name = ,	Sch name = CLK100MHZ
 	set_property PACKAGE_PIN P3 [get_ports done]
 	set_property IOSTANDARD LVCMOS33 [get_ports done]
 
-	set_property PACKAGE_PIN N3 [get_ports rstring
-	set_property IOSTANDARD LVCMOS33 [get_ports rstring]
+	set_property PACKAGE_PIN N3 [get_ports rsting]
+	set_property IOSTANDARD LVCMOS33 [get_ports rsting]
 
 	set_property PACKAGE_PIN P1 [get_ports started]
 	set_property IOSTANDARD LVCMOS33 [get_ports started]
