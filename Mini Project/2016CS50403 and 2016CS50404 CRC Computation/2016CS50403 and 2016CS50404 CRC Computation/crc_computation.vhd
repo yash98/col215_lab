@@ -1401,7 +1401,7 @@ begin
                     calc_pb <= "00";
                 
                 elsif (pb4='1') then
-                    addr_inp <= "0100"; -- 4 index is 5 th word
+                    addr_inp <= "0100"; -- 11 index is 12 th word
                     calc_pb <= "01";
                 
                 elsif (pb5='1') then
@@ -1431,10 +1431,12 @@ begin
                         int_inp <= one & inp_bram_data & zero;
                         
                     elsif (calc_pb="01") then
-                        int_inp <= one & inp_bram_data(15 downto 7) & not inp_bram_data(6 downto 6) & inp_bram_data(5 downto 0) & zero;
+                        int_inp <= one & inp_bram_data(15 downto 10) & not inp_bram_data(9 downto 9) & inp_bram_data(8 downto 0) & zero;
+                        -- modify 16-7=9 index 1st bit index 15
                         
                     elsif (calc_pb="10") then
-                        int_inp <= one & inp_bram_data(15 downto 4) & not inp_bram_data(3 downto 3) & inp_bram_data(2 downto 0) & zero;
+                        int_inp <= one & inp_bram_data(15 downto 5) & not inp_bram_data(4 downto 4) & inp_bram_data(3 downto 0) & zero;
+                        -- modify 16-12=4 index 1st bit index 15
                         
                     end if;
                 end if;
@@ -1456,12 +1458,10 @@ begin
                         start <= '0';
                         crc <= int_inp(47 downto 32);
                         done <= '1';
-                        if (calc_pb="00") then
-                            wr_crc <= crc;
-                            we_crc <= "1";
-                            addr_crc <= w_crc_addr;
-                            w_crc_addr <= w_crc_addr + "0001";
-                        end if;
+                        wr_crc <= crc;
+                        we_crc <= "1";
+                        addr_crc <= w_crc_addr;
+                        w_crc_addr <= w_crc_addr + "0001";
                         n <= "000000";
                     end if;
                 end if;
@@ -1509,7 +1509,7 @@ entity crc_computation is
     );
 end crc_computation;
 
-     architecture beh of crc_computation is
+architecture beh of crc_computation is
 
 
 
